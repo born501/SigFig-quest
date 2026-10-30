@@ -1,0 +1,2443 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SigFig Quest — เกมบัตรคำเลขนัยสำคัญ</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1b1240">
+<meta name="description" content="เกมบัตรคำฝึกเลขนัยสำคัญ 4 ด่าน เล่นแบบกลุ่มหรือเดี่ยว">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SigFig Quest">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&family=Boogaloo&family=IBM+Plex+Mono:wght@400;700&display=swap');
+
+:root {
+  --bg: #0f1923;
+  --surface: #1a2634;
+  --card-bg: #ffffff;
+  --neon-yellow: #f5e642;
+  --neon-cyan: #42f5e3;
+  --neon-pink: #f542a1;
+  --neon-green: #42f56f;
+  --neon-orange: #f5a042;
+  --text-dark: #1a1a1a;
+  --text-muted: #8899aa;
+  --stage1: #ff6b6b;
+  --stage2: #ffd166;
+  --stage3: #06d6a0;
+  --stage3x: #118ab2;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Sarabun', sans-serif;
+  background: var(--bg);
+  color: #fff;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ──── BACKGROUND GRID ──── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(66,245,227,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(66,245,227,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+
+/* ──── HEADER ──── */
+.game-header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding-top: 12px;
+}
+
+.game-title {
+  font-family: 'Boogaloo', cursive;
+  font-size: 52px;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 30px rgba(245,230,66,0.5), 0 0 60px rgba(245,230,66,0.2);
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.game-subtitle {
+  font-size: 15px;
+  color: var(--neon-cyan);
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 3px;
+  margin-top: 6px;
+  text-transform: uppercase;
+}
+
+/* ──── STAGE TABS ──── */
+.stage-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 28px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.stage-btn {
+  flex: 1;
+  min-width: 160px;
+  padding: 14px 10px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  transition: all .25s;
+  background: var(--surface);
+  color: #aaa;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.stage-btn .stage-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 4px;
+  opacity: 0.7;
+}
+
+.stage-btn .stage-name { font-size: 15px; }
+
+.stage-btn.s1 { --c: var(--stage1); }
+.stage-btn.s2 { --c: var(--stage2); }
+.stage-btn.s3 { --c: var(--stage3); }
+.stage-btn.s4 { --c: var(--stage3x); }
+
+.stage-btn.active {
+  background: var(--c);
+  color: #fff;
+  border-color: var(--c);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--c) 50%, transparent);
+  color: #1a1a1a;
+}
+
+.stage-btn:not(.active):hover {
+  border-color: var(--c);
+  color: var(--c);
+}
+
+.stage-btn .lock-icon {
+  position: absolute;
+  top: 8px; right: 8px;
+  font-size: 14px;
+  opacity: 0.5;
+}
+
+/* ──── GAME AREA ──── */
+.game-area {
+  display: none;
+  animation: fadeIn .3s ease;
+}
+.game-area.active { display: block; }
+
+@keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+
+/* ──── STAGE INFO BANNER ──── */
+.stage-banner {
+  border-radius: 14px;
+  padding: 18px 22px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  border: 2px solid;
+}
+
+.stage-banner.s1 { background: rgba(255,107,107,0.12); border-color: var(--stage1); }
+.stage-banner.s2 { background: rgba(255,209,102,0.12); border-color: var(--stage2); }
+.stage-banner.s3 { background: rgba(6,214,160,0.12); border-color: var(--stage3); }
+.stage-banner.s4 { background: rgba(17,138,178,0.12); border-color: var(--stage3x); }
+
+.stage-icon { font-size: 36px; line-height:1; }
+
+.stage-info h3 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+.stage-info .rule-text { font-size: 13px; color: #ccc; line-height: 1.7; }
+.stage-info .rule-text strong { color: var(--neon-yellow); }
+
+/* ──── HOW TO PLAY ──── */
+.how-to-play {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  font-size: 13px;
+  color: #aaa;
+  line-height: 1.8;
+}
+.how-to-play h4 {
+  color: var(--neon-cyan);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.how-to-play ol { padding-left: 18px; }
+.how-to-play li { margin-bottom: 4px; }
+
+/* ──── SCOREBOARD ──── */
+.scoreboard {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.score-card {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 14px 10px;
+  text-align: center;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color .2s;
+  position: relative;
+}
+.score-card .team-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: #666;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.score-card .team-points {
+  font-family: 'Boogaloo', cursive;
+  font-size: 36px;
+  line-height: 1;
+}
+.score-card.t1 .team-points { color: var(--stage1); }
+.score-card.t2 .team-points { color: var(--stage2); }
+.score-card.t3 .team-points { color: var(--stage3); }
+.score-card.t4 .team-points { color: #c084fc; }
+.score-card .score-btns { display: flex; gap: 4px; margin-top: 8px; justify-content: center; }
+.score-btn {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  transition: transform .1s;
+}
+.score-btn:active { transform: scale(0.9); }
+.score-btn.plus { background: rgba(6,214,160,0.2); color: var(--neon-green); }
+.score-btn.minus { background: rgba(255,107,107,0.2); color: var(--stage1); }
+
+/* ──── CARD DRAW AREA ──── */
+.card-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.btn-draw {
+  flex: 1;
+  min-width: 180px;
+  padding: 16px 24px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Boogaloo', cursive;
+  font-size: 22px;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: 1px;
+}
+
+.btn-draw.s1 { background: var(--stage1); color: #fff; box-shadow: 0 6px 20px rgba(255,107,107,0.4); }
+.btn-draw.s2 { background: var(--stage2); color: #1a1a1a; box-shadow: 0 6px 20px rgba(255,209,102,0.4); }
+.btn-draw.s3 { background: var(--stage3); color: #1a1a1a; box-shadow: 0 6px 20px rgba(6,214,160,0.4); }
+.btn-draw.s4 { background: var(--stage3x); color: #fff; box-shadow: 0 6px 20px rgba(17,138,178,0.4); }
+.btn-draw:hover { transform: translateY(-2px) scale(1.02); }
+.btn-draw:active { transform: scale(0.97); }
+
+.card-remaining {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: #666;
+  white-space: nowrap;
+}
+
+/* ──── FLASH CARD ──── */
+.flash-card-wrapper {
+  perspective: 1000px;
+  margin-bottom: 20px;
+  min-height: 260px;
+}
+
+.flash-card {
+  width: 100%;
+  min-height: 260px;
+  border-radius: 20px;
+  padding: 32px 28px;
+  position: relative;
+  cursor: pointer;
+  transition: transform .6s, box-shadow .3s;
+  transform-style: preserve-3d;
+  animation: cardSlide .4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes cardSlide {
+  from { transform: translateY(-30px) rotateX(10deg); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.flash-card.flipped { transform: rotateY(180deg); }
+
+.flash-card .card-front, .flash-card .card-back {
+  position: absolute;
+  inset: 0;
+  padding: 32px 28px;
+  border-radius: 20px;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.flash-card .card-back { transform: rotateY(180deg); }
+
+/* Stage-colored cards */
+.flash-card.s1 .card-front { background: linear-gradient(135deg, #fff5f5, #ffe0e0); border: 3px solid var(--stage1); }
+.flash-card.s2 .card-front { background: linear-gradient(135deg, #fffbf0, #fff3cc); border: 3px solid var(--stage2); }
+.flash-card.s3 .card-front { background: linear-gradient(135deg, #f0fff8, #ccf7e8); border: 3px solid var(--stage3); }
+.flash-card.s4 .card-front { background: linear-gradient(135deg, #f0f8ff, #cce5f7); border: 3px solid var(--stage3x); }
+
+.flash-card .card-back { background: linear-gradient(135deg, #1e2d3d, #0f1923); border: 3px solid #334; }
+
+.card-stage-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 16px;
+  align-self: flex-start;
+}
+.s1 .card-stage-tag { background: var(--stage1); color: #fff; }
+.s2 .card-stage-tag { background: var(--stage2); color: #1a1a1a; }
+.s3 .card-stage-tag { background: var(--stage3); color: #1a1a1a; }
+.s4 .card-stage-tag { background: var(--stage3x); color: #fff; }
+
+.card-question.scenario {
+  font-family: 'Sarabun', sans-serif; font-size: 20px; font-weight: 600; line-height: 1.7;
+}
+.card-question.scenario b { color: #0b5f7d; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
+#cardWrap3, #cardWrap3 .flash-card { min-height: 330px; }
+@media (max-width: 600px) { .card-question.scenario { font-size: 17px; } #cardWrap3, #cardWrap3 .flash-card { min-height: 400px; } }
+.card-question {
+  font-size: 28px;
+  font-weight: 800;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text-dark);
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.card-hint {
+  font-size: 13px;
+  color: #888;
+  font-family: 'Sarabun', sans-serif;
+}
+
+.card-flip-tip {
+  font-size: 12px;
+  color: #aaa;
+  text-align: center;
+  margin-top: 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 1px;
+  animation: blink 2s infinite;
+}
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* Back of card */
+.answer-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--neon-cyan);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.card-answer {
+  font-size: 32px;
+  font-weight: 800;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 20px rgba(245,230,66,0.3);
+  margin-bottom: 12px;
+}
+
+.card-explanation {
+  font-size: 14px;
+  color: #ccc;
+  line-height: 1.8;
+  font-family: 'Sarabun', sans-serif;
+}
+.card-explanation strong { color: var(--neon-green); }
+
+/* ──── CARD DECK VISUAL ──── */
+.deck-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.deck-pip {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #334;
+  transition: background .3s;
+}
+.deck-pip.used { background: #556; }
+
+/* ──── EMPTY STATE ──── */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #555;
+}
+.empty-state .empty-icon { font-size: 64px; margin-bottom: 16px; }
+.empty-state h3 { font-size: 22px; color: #777; margin-bottom: 8px; }
+
+/* ──── HISTORY ──── */
+.history-section { margin-top: 24px; }
+.history-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #444;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.history-list { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  background: var(--surface);
+  border-radius: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: #666;
+}
+.history-item .h-q { color: #999; }
+.history-item .h-a { color: var(--neon-green); }
+.history-item .h-team { font-size: 10px; color: #444; }
+
+/* ──── RESET BUTTON ──── */
+.btn-reset {
+  display: block;
+  margin: 12px auto 0;
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1px solid #334;
+  background: transparent;
+  color: #555;
+  font-size: 13px;
+  font-family: 'IBM Plex Mono', monospace;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: 1px;
+}
+.btn-reset:hover { border-color: var(--stage1); color: var(--stage1); }
+
+/* ──── WINNER BANNER ──── */
+.winner-banner {
+  display: none;
+  text-align: center;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(245,230,66,0.15), rgba(66,245,227,0.1));
+  border: 2px solid var(--neon-yellow);
+  border-radius: 16px;
+  margin-bottom: 20px;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 20px rgba(245,230,66,0.3); }
+  50% { box-shadow: 0 0 40px rgba(245,230,66,0.6); }
+}
+.winner-banner h2 { font-family: 'Boogaloo', cursive; font-size: 36px; color: var(--neon-yellow); }
+.winner-banner p { color: #ccc; font-size: 14px; margin-top: 6px; }
+
+/* ──── TIMER ──── */
+.timer-bar {
+  display: none;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 14px 20px;
+  margin-bottom: 16px;
+  border: 2px solid #334;
+  transition: border-color .3s;
+}
+.timer-bar.running { display: flex; }
+.timer-bar.urgent { border-color: var(--stage1); animation: urgentPulse .5s infinite; }
+@keyframes urgentPulse {
+  0%,100% { box-shadow: 0 0 0 rgba(255,107,107,0); }
+  50% { box-shadow: 0 0 18px rgba(255,107,107,0.5); }
+}
+.timer-display {
+  font-family: 'Boogaloo', cursive;
+  font-size: 48px;
+  min-width: 80px;
+  text-align: center;
+  line-height: 1;
+  transition: color .3s;
+}
+.timer-display.ok { color: var(--neon-green); }
+.timer-display.warn { color: var(--neon-yellow); }
+.timer-display.urgent { color: var(--stage1); }
+.timer-track {
+  flex: 1;
+  height: 10px;
+  background: #223;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.timer-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width .9s linear, background .3s;
+  background: var(--neon-green);
+}
+.timer-fill.warn { background: var(--neon-yellow); }
+.timer-fill.urgent { background: var(--stage1); }
+.timer-controls { display: flex; gap: 8px; }
+.btn-timer {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  transition: all .15s;
+}
+.btn-timer.start { background: var(--neon-green); color: #000; }
+.btn-timer.stop  { background: var(--stage1); color: #fff; }
+.btn-timer:hover { transform: scale(1.05); }
+
+/* ──── SOUND TOGGLE ──── */
+.sound-toggle {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  z-index: 100;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 2px solid #334;
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 22px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.sound-toggle:hover { border-color: var(--neon-cyan); transform: scale(1.1); }
+.sound-toggle.muted { opacity: 0.4; }
+
+/* ──── FEEDBACK PANEL ──── */
+.feedback-section {
+  margin-top: 48px;
+  padding: 28px 24px 32px;
+  background: var(--surface);
+  border-radius: 18px;
+  border: 2px solid #2a2a3a;
+}
+.feedback-title {
+  font-family: 'Boogaloo', cursive;
+  font-size: 26px;
+  color: var(--neon-cyan);
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+.feedback-subtitle {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 20px;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 1px;
+}
+.feedback-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.feedback-group-select {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 2px solid #334;
+  background: #0d0d1a;
+  color: #eee;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color .2s;
+}
+.feedback-group-select:focus { border-color: var(--neon-cyan); }
+.feedback-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 2px solid #334;
+  background: #0d0d1a;
+  color: #eee;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 15px;
+  outline: none;
+  transition: border-color .2s;
+}
+.feedback-input:focus { border-color: var(--neon-cyan); }
+.feedback-input::placeholder { color: #555; }
+.feedback-submit {
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: none;
+  background: var(--neon-cyan);
+  color: #000;
+  font-family: 'Sarabun', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform .15s, opacity .15s;
+  white-space: nowrap;
+}
+.feedback-submit:hover { transform: scale(1.05); opacity: 0.9; }
+.feedback-submit:active { transform: scale(0.97); }
+.feedback-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.feedback-empty {
+  text-align: center;
+  color: #555;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  padding: 20px 0;
+  letter-spacing: 1px;
+}
+.feedback-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: #0d0d1a;
+  border-radius: 10px;
+  padding: 12px 16px;
+  border-left: 3px solid var(--neon-cyan);
+  animation: fadeIn .3s ease;
+}
+.feedback-badge {
+  font-size: 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+  color: #000;
+  background: var(--neon-cyan);
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  line-height: 1.4;
+  margin-top: 1px;
+}
+.feedback-text {
+  font-size: 15px;
+  color: #ddd;
+  line-height: 1.5;
+  flex: 1;
+}
+.feedback-time {
+  font-size: 11px;
+  color: #555;
+  font-family: 'IBM Plex Mono', monospace;
+  white-space: nowrap;
+  margin-top: 3px;
+}
+.feedback-clear {
+  margin-top: 16px;
+  text-align: right;
+}
+.feedback-clear-btn {
+  font-size: 12px;
+  color: #555;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 1px;
+  transition: color .2s;
+  padding: 4px 8px;
+}
+.feedback-clear-btn:hover { color: #ff6b6b; }
+
+/* ──── MOBILE ──── */
+@media (max-width: 600px) {
+  .game-title { font-size: 36px; }
+  .scoreboard { grid-template-columns: 1fr 1fr; }
+  .card-question { font-size: 22px; }
+  .card-answer { font-size: 26px; }
+  .stage-nav { flex-wrap: nowrap; }
+  .stage-btn { min-width: 130px; }
+  .feedback-form { flex-direction: column; }
+  .feedback-input { min-width: unset; }
+}
+
+/* ──── MODE SELECT ──── */
+.mode-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(15,25,35,0.97);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; overflow-y: auto;
+}
+.mode-overlay.hidden { display: none; }
+.mode-box { width: 100%; max-width: 720px; text-align: center; }
+.mode-box .game-title { margin-bottom: 4px; }
+.mode-box .mode-q { color: var(--neon-cyan); font-size: 16px; margin: 8px 0 24px; }
+.mode-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.mode-card {
+  background: var(--surface); border: 2px solid #2a3a4c; border-radius: 18px;
+  padding: 24px 18px; cursor: pointer; color: #fff; font-family: inherit;
+  transition: border-color .2s, transform .15s; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.mode-card:hover { transform: translateY(-3px); }
+.mode-card.group:hover, .mode-card.group:focus-visible { border-color: var(--neon-yellow); }
+.mode-card.solo:hover, .mode-card.solo:focus-within { border-color: var(--neon-cyan); }
+.mode-card .m-icon { font-size: 48px; line-height: 1; }
+.mode-card .m-title { font-size: 22px; font-weight: 800; }
+.mode-card .m-desc { font-size: 13px; color: #aab; line-height: 1.7; }
+.mode-card input {
+  width: 100%; margin-top: 6px; padding: 10px 12px; border-radius: 10px;
+  border: 2px solid #334; background: #0f1923; color: #fff;
+  font-family: inherit; font-size: 15px; text-align: center;
+}
+.mode-card input:focus { outline: none; border-color: var(--neon-cyan); }
+.mode-go {
+  margin-top: 4px; width: 100%; padding: 11px; border: none; border-radius: 10px;
+  font-family: inherit; font-size: 16px; font-weight: 800; cursor: pointer;
+}
+.mode-card.group .mode-go { background: var(--neon-yellow); color: #1a1a1a; }
+.mode-card.solo .mode-go { background: var(--neon-cyan); color: #1a1a1a; }
+
+.mode-switch {
+  margin-top: 10px; background: transparent; border: 1px solid #334; color: #8899aa;
+  border-radius: 999px; padding: 6px 14px; font-family: inherit; font-size: 13px; cursor: pointer;
+}
+.mode-switch:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+
+body.mode-group .solo-only { display: none !important; }
+body.mode-solo .group-only { display: none !important; }
+
+/* ──── SOLO BOARD ──── */
+.solo-board {
+  display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px;
+}
+.solo-stat {
+  background: var(--surface); border-radius: 12px; padding: 14px 10px; text-align: center;
+}
+.solo-stat .s-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8899aa;
+  letter-spacing: 1px; margin-bottom: 4px;
+}
+.solo-stat .s-value { font-family: 'Boogaloo', cursive; font-size: 36px; line-height: 1; }
+.solo-stat.name .s-value { font-family: 'Sarabun', sans-serif; font-size: 22px; font-weight: 800; color: var(--neon-cyan); line-height: 1.6; overflow-wrap: anywhere; }
+.solo-stat.pts .s-value { color: var(--neon-yellow); }
+.solo-stat.acc .s-value { color: var(--neon-green); }
+.solo-stat.streak .s-value { color: var(--neon-orange); }
+.solo-stat .s-sub { font-size: 12px; color: #8899aa; margin-top: 4px; }
+
+body.mode-solo .flash-card, body.mode-solo .flash-card-wrapper { min-height: 340px; }
+.self-check { display: flex; gap: 10px; margin-top: 16px; }
+.self-check button {
+  flex: 1; padding: 12px; border-radius: 12px; border: 2px solid; cursor: pointer;
+  font-family: inherit; font-size: 16px; font-weight: 800; background: transparent;
+}
+.self-check .ok { border-color: var(--neon-green); color: var(--neon-green); }
+.self-check .ok:hover { background: rgba(66,245,111,0.15); }
+.self-check .no { border-color: #ff6b6b; color: #ff6b6b; }
+.self-check .no:hover { background: rgba(255,107,107,0.15); }
+.self-check-done { margin-top: 16px; font-weight: 800; font-size: 16px; }
+.self-check-done.ok { color: var(--neon-green); }
+.self-check-done.no { color: #ff9b9b; }
+
+.solo-summary { margin-top: 12px; color: #ccc; font-size: 15px; line-height: 1.9; }
+.solo-summary strong { color: var(--neon-yellow); }
+.history-item.h-ok .h-q::before { content: '✅ '; }
+.history-item.h-no .h-q::before { content: '❌ '; }
+
+@media (max-width: 600px) {
+  .mode-choices { grid-template-columns: 1fr; }
+  .solo-board { grid-template-columns: 1fr 1fr; }
+  .solo-stat.name { grid-column: 1 / -1; }
+}
+
+/* ──── SOLO ANSWER BOX ──── */
+.answer-box { background: var(--surface); border-radius: 14px; padding: 14px; margin: -6px 0 20px; }
+.answer-row { display: flex; gap: 8px; }
+.answer-row input {
+  flex: 1; min-width: 0; padding: 12px 14px; border-radius: 10px; border: 2px solid #334;
+  background: #0f1923; color: #fff; font-family: 'IBM Plex Mono', 'Sarabun', monospace; font-size: 20px;
+}
+.answer-row input:focus { outline: none; border-color: var(--neon-cyan); }
+.answer-row input:disabled { opacity: .5; }
+.ans-submit {
+  padding: 0 18px; border: none; border-radius: 10px; background: var(--neon-cyan); color: #1a1a1a;
+  font-family: inherit; font-size: 16px; font-weight: 800; cursor: pointer; white-space: nowrap;
+}
+.ans-submit:disabled { opacity: .4; cursor: default; }
+.ans-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; color: #8899aa; }
+.ans-tools button {
+  padding: 5px 10px; border-radius: 8px; border: 1px solid #334; background: #0f1923; color: #ccc;
+  font-family: 'IBM Plex Mono', monospace; font-size: 14px; cursor: pointer;
+}
+.ans-result { margin-top: 10px; font-size: 15px; font-weight: 700; line-height: 1.7; }
+.ans-result:empty { display: none; }
+.ans-result.ok { color: var(--neon-green); }
+.ans-result.no { color: #ff9b9b; }
+.ans-result .mono { font-family: 'IBM Plex Mono', monospace; color: #fff; }
+
+.finish-btn {
+  display: block; width: 100%; margin: -12px 0 24px; padding: 12px; border-radius: 12px;
+  border: 2px solid var(--neon-yellow); background: rgba(245,230,66,0.1); color: var(--neon-yellow);
+  font-family: inherit; font-size: 16px; font-weight: 800; cursor: pointer;
+}
+.finish-btn:hover { background: rgba(245,230,66,0.2); }
+
+/* ──── RESULT MODAL ──── */
+.result-box {
+  width: 100%; max-width: 560px; background: var(--surface); border: 2px solid var(--neon-yellow);
+  border-radius: 18px; padding: 22px 20px; text-align: left;
+}
+.result-box h2 { font-size: 24px; color: var(--neon-yellow); text-align: center; margin-bottom: 4px; }
+.result-box .r-sub { text-align: center; color: #aab; font-size: 13px; margin-bottom: 16px; }
+.result-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 14px; }
+.result-table th, .result-table td { padding: 7px 8px; border-bottom: 1px solid #2a3a4c; text-align: center; }
+.result-table th:first-child, .result-table td:first-child { text-align: left; }
+.result-table th { color: #8899aa; font-weight: 600; font-size: 12px; }
+.result-table tr.total td { color: var(--neon-yellow); font-weight: 800; border-bottom: none; }
+.result-note { font-size: 13px; color: #ccc; line-height: 1.7; margin-bottom: 12px; }
+.result-note strong { color: var(--neon-cyan); }
+.result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.result-actions a, .result-actions button {
+  display: block; text-align: center; padding: 12px 8px; border-radius: 10px; font-family: inherit;
+  font-size: 15px; font-weight: 800; cursor: pointer; text-decoration: none; border: 2px solid transparent;
+}
+.r-gmail { background: var(--neon-yellow); color: #1a1a1a; }
+.r-mail { background: var(--neon-cyan); color: #1a1a1a; }
+.r-copy, .r-close { background: transparent; color: #ccc; border-color: #334 !important; }
+.result-text {
+  width: 100%; height: 110px; margin: 12px 0 0; padding: 10px; border-radius: 10px; border: 1px solid #334;
+  background: #0f1923; color: #aab; font-family: 'IBM Plex Mono', monospace; font-size: 11px; resize: vertical;
+}
+.r-copied { text-align: center; font-size: 12px; color: var(--neon-green); min-height: 18px; margin-top: 6px; }
+@media (max-width: 600px) { .result-actions { grid-template-columns: 1fr; } }
+
+.result-comment-label { font-size: 13px; color: #ccc; margin: 4px 0 6px; }
+.result-comment {
+  width: 100%; height: 64px; padding: 10px; border-radius: 10px; border: 2px solid #334;
+  background: #0f1923; color: #fff; font-family: inherit; font-size: 14px; resize: vertical; margin-bottom: 12px;
+}
+.result-comment:focus { outline: none; border-color: var(--neon-cyan); }
+.verify-note { font-size: 12px; color: #8899aa; line-height: 1.6; margin-top: 8px; }
+.teacher-link {
+  display: block; margin: 18px auto 0; background: none; border: none; color: #556677;
+  font-family: inherit; font-size: 12px; cursor: pointer; text-decoration: underline;
+}
+.teacher-link:hover { color: var(--neon-cyan); }
+.verify-input {
+  width: 100%; height: 180px; padding: 10px; border-radius: 10px; border: 2px solid #334;
+  background: #0f1923; color: #ddd; font-family: 'IBM Plex Mono', monospace; font-size: 12px; resize: vertical;
+}
+.verify-result { margin-top: 10px; padding: 12px; border-radius: 10px; font-weight: 700; line-height: 1.6; }
+.verify-result:empty { display: none; }
+.verify-result.ok { background: rgba(66,245,111,0.12); color: var(--neon-green); }
+.verify-result.no { background: rgba(255,107,107,0.12); color: #ff9b9b; }
+.verify-result.warn { background: rgba(245,160,66,0.12); color: var(--neon-orange); }
+
+/* ──── MODE SELECT — colorful ──── */
+#modeOverlay {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255,107,107,0.45), transparent 38%),
+    radial-gradient(circle at 88% 22%, rgba(66,245,227,0.40), transparent 40%),
+    radial-gradient(circle at 80% 88%, rgba(192,132,252,0.45), transparent 42%),
+    radial-gradient(circle at 15% 85%, rgba(255,209,102,0.40), transparent 40%),
+    linear-gradient(160deg, #1b1240 0%, #0f1f3d 55%, #10233a 100%);
+  overflow: hidden auto;
+}
+.mode-floats { position: absolute; inset: 0; pointer-events: none; }
+.mf {
+  position: absolute; font-family: 'IBM Plex Mono', monospace; font-weight: 700; color: rgba(255,255,255,0.55);
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 999px;
+  animation: mfloat 7s ease-in-out infinite; white-space: nowrap;
+}
+@keyframes mfloat { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-16px) rotate(4deg); } }
+.mf0{left:4%;top:8%;animation-delay:-1.9s;font-size:16px;}
+.mf1{left:86%;top:6%;animation-delay:-2.4s;font-size:14px;}
+.mf2{left:10%;top:78%;animation-delay:-0.4s;font-size:14px;}
+.mf3{left:90%;top:70%;animation-delay:-2.2s;font-size:14px;}
+.mf4{left:48%;top:4%;animation-delay:-5.5s;font-size:16px;}
+.mf5{left:3%;top:45%;animation-delay:-0.2s;font-size:22px;}
+.mf6{left:93%;top:40%;animation-delay:-2.5s;font-size:16px;}
+.mf7{left:22%;top:92%;animation-delay:-0.5s;font-size:22px;}
+.mf8{left:70%;top:90%;animation-delay:-0.4s;font-size:14px;}
+.mf9{left:30%;top:16%;animation-delay:-5.7s;font-size:14px;}
+.mf10{left:66%;top:14%;animation-delay:-3.5s;font-size:22px;}
+.mf11{left:80%;top:84%;animation-delay:-0.3s;font-size:16px;}
+.mf12{left:14%;top:30%;animation-delay:-0.3s;font-size:16px;}
+.mf13{left:56%;top:94%;animation-delay:-1.7s;font-size:16px;}
+
+#modeOverlay { align-items: flex-start; }
+#modeOverlay .mode-box { position: relative; max-width: 780px; padding: 20px 0; margin: auto; }
+.mode-badge {
+  display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 700;
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); color: #fff; margin-bottom: 10px;
+}
+.mode-title {
+  font-family: 'Boogaloo', cursive; font-size: 64px; line-height: 1.05; margin-bottom: 6px;
+  background: linear-gradient(90deg, #ffd166, #ff6b6b, #f542a1, #42f5e3, #ffd166); background-size: 300% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: titleShift 6s linear infinite; filter: drop-shadow(0 4px 18px rgba(245,66,161,0.35));
+}
+.mt-flask { -webkit-text-fill-color: initial; color: initial; display: inline-block; animation: wobble 2.4s ease-in-out infinite; }
+@keyframes titleShift { to { background-position: 300% 0; } }
+@keyframes wobble { 0%,100% { transform: rotate(-10deg); } 50% { transform: rotate(10deg) translateY(-4px); } }
+#modeOverlay .mode-q { color: #e6ecff; font-size: 17px; margin: 4px 0 26px; }
+#modeOverlay .mode-q b { color: #ffd166; }
+#modeOverlay .mode-choices { gap: 20px; }
+
+#modeOverlay .mode-card {
+  position: relative; overflow: hidden; border: none; border-radius: 26px; padding: 22px 20px 20px; gap: 10px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.35), inset 0 0 0 2px rgba(255,255,255,0.25);
+  transition: transform .2s cubic-bezier(.3,1.6,.5,1), box-shadow .2s;
+}
+#modeOverlay .mode-card::after {
+  content: ''; position: absolute; top: -60%; left: -40%; width: 40%; height: 220%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+  transform: rotate(20deg); transition: left .6s; pointer-events: none;
+}
+#modeOverlay .mode-card:hover::after { left: 120%; }
+#modeOverlay .mode-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 26px 50px rgba(0,0,0,0.45), inset 0 0 0 3px rgba(255,255,255,0.6); }
+#modeOverlay .mode-card.group { background: linear-gradient(145deg, #ff9a3c 0%, #ff5f6d 55%, #e9407a 100%); }
+#modeOverlay .mode-card.solo  { background: linear-gradient(145deg, #2fd4c4 0%, #2f80ed 55%, #7b4dff 100%); }
+#modeOverlay .m-title { font-size: 28px; font-weight: 800; color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,0.15); }
+#modeOverlay .m-desc { color: rgba(255,255,255,0.95); font-size: 14px; }
+
+.m-art { position: relative; height: 110px; width: 100%; display: flex; align-items: center; justify-content: center; }
+.av {
+  position: absolute; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-family: 'Boogaloo', cursive; font-size: 30px; color: #fff; border: 4px solid #fff;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.25); animation: bob 2.2s ease-in-out infinite;
+}
+.av.a1 { background: #ff6b6b; transform: translate(-78px, -14px); left: 50%; margin-left: -28px; }
+.av.a2 { background: #ffd166; color: #7a4b00; left: 50%; margin-left: -28px; animation-delay: -.5s; }
+.av.a3 { background: #06d6a0; left: 50%; margin-left: -28px; animation-delay: -1s; }
+.av.a4 { background: #c084fc; left: 50%; margin-left: -28px; animation-delay: -1.5s; }
+@keyframes bob { 0%,100% { margin-top: 0; } 50% { margin-top: -10px; } }
+.av.a1 { transform: translate(-90px, 6px) rotate(-8deg); }
+.av.a2 { transform: translate(-32px, -16px) rotate(-3deg); }
+.av.a3 { transform: translate(32px, -16px) rotate(3deg); }
+.av.a4 { transform: translate(90px, 6px) rotate(8deg); }
+.m-burst {
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%) rotate(-6deg);
+  background: #fff; color: #e9407a; font-family: 'Boogaloo', cursive; font-size: 20px; padding: 0 12px; border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2); animation: pop 1.6s ease-in-out infinite;
+}
+@keyframes pop { 0%,100% { transform: translateX(-50%) rotate(-6deg) scale(1); } 50% { transform: translateX(-50%) rotate(4deg) scale(1.15); } }
+.hero {
+  font-size: 64px; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.95); border: 4px solid #fff; box-shadow: 0 8px 20px rgba(0,0,0,0.25), 0 0 0 8px rgba(255,255,255,0.18);
+  animation: bob2 2.4s ease-in-out infinite;
+}
+@keyframes bob2 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.star { position: absolute; font-size: 22px; animation: twinkle 1.8s ease-in-out infinite; }
+.star.s1 { left: calc(50% - 82px); top: 10px; }
+.star.s2 { left: calc(50% + 62px); top: 2px; animation-delay: -.6s; font-size: 26px; }
+.star.s3 { left: calc(50% + 70px); top: 70px; animation-delay: -1.2s; font-size: 16px; }
+@keyframes twinkle { 0%,100% { transform: scale(.7) rotate(0); opacity: .6; } 50% { transform: scale(1.2) rotate(20deg); opacity: 1; } }
+
+.m-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.m-tags span {
+  font-size: 12px; font-weight: 700; color: #fff; padding: 4px 10px; border-radius: 999px;
+  background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35);
+}
+#modeOverlay .mode-card input {
+  background: rgba(255,255,255,0.95); color: #1a1a1a; border: 3px solid transparent; font-weight: 600;
+}
+#modeOverlay .mode-card input::placeholder { color: #7a86a8; }
+#modeOverlay .mode-card input:focus { border-color: #ffd166; }
+#modeOverlay .mode-go {
+  background: #fff !important; border-radius: 14px; padding: 13px; font-size: 17px;
+  box-shadow: 0 5px 0 rgba(0,0,0,0.18); transition: transform .1s, box-shadow .1s;
+}
+#modeOverlay .mode-card.group .mode-go { color: #e9407a !important; }
+#modeOverlay .mode-card.solo .mode-go { color: #2f5fe0 !important; }
+#modeOverlay .mode-go:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,0.18); }
+.mode-foot { margin-top: 22px; font-size: 13px; color: rgba(255,255,255,0.7); }
+@media (max-width: 600px) {
+  .mode-title { font-size: 44px; }
+  .mf { opacity: .28; }
+  .av { width: 48px; height: 48px; font-size: 26px; }
+  .av.a1 { transform: translate(-78px, 6px) rotate(-8deg); }
+  .av.a4 { transform: translate(78px, 6px) rotate(8deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #modeOverlay *, #modeOverlay *::after { animation: none !important; transition: none !important; }
+}
+
+.install-wrap { margin-top: 16px; display: none; }
+.install-wrap.show { display: block; }
+.install-btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px; cursor: pointer;
+  border: 2px solid #fff; background: rgba(255,255,255,0.15); color: #fff; font-family: inherit; font-size: 16px; font-weight: 800;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25); animation: pop2 2s ease-in-out infinite;
+}
+.install-btn:hover { background: rgba(255,255,255,0.28); }
+@keyframes pop2 { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+.install-hint { font-size: 13px; color: #fff; line-height: 1.7; background: rgba(0,0,0,0.25); border-radius: 12px; padding: 10px 14px; display: inline-block; }
+</style>
+</head>
+<body class="mode-group">
+<!-- RESULT MODAL (solo) -->
+<div class="mode-overlay hidden" id="resultOverlay">
+  <div class="result-box">
+    <h2>🏁 สรุปผลคะแนน</h2>
+    <div class="r-sub" id="resultSub"></div>
+    <table class="result-table">
+      <thead><tr><th>ด่าน</th><th>ตอบถูก</th><th>คะแนน</th></tr></thead>
+      <tbody id="resultRows"></tbody>
+    </table>
+    <div class="result-note">กดปุ่มด้านล่างเพื่อส่งผลคะแนนไปที่อีเมลครู <strong id="teacherEmailLabel"></strong><br>
+      ระบบจะเปิดหน้าเขียนอีเมลที่กรอกข้อมูลไว้ให้แล้ว — <strong>กด "ส่ง" ในหน้านั้นอีกครั้ง</strong></div>
+    <div class="result-comment-label">💬 ข้อคิดเห็น / ข้อเสนอแนะถึงครู (ถ้ามี) — จะแนบไปในอีเมลด้วย</div>
+    <textarea class="result-comment" id="resultComment" maxlength="300"
+      placeholder="เช่น ด่านไหนยาก ชอบส่วนไหน อยากให้ปรับอะไร" oninput="refreshReport()"></textarea>
+    <div class="result-actions">
+      <a class="r-gmail" id="resultGmail" target="_blank" rel="noopener">📧 ส่งผ่าน Gmail</a>
+      <a class="r-mail" id="resultMailto" target="_blank" rel="noopener">✉️ ส่งผ่านแอปอีเมล</a>
+      <button class="r-copy" onclick="copyResults()">📋 คัดลอกผลคะแนน</button>
+      <button class="r-close" onclick="closeResults()">↩ กลับไปเล่นต่อ</button>
+    </div>
+    <div class="r-copied" id="resultCopied"></div>
+    <textarea class="result-text" id="resultText" readonly></textarea>
+    <div class="verify-note">🔒 ท้ายข้อความมี <b>รหัสตรวจสอบ</b> — ถ้ามีการแก้ไขคะแนนหรือข้อความก่อนส่ง ครูจะตรวจพบได้</div>
+  </div>
+</div>
+
+<!-- TEACHER VERIFY MODAL -->
+<div class="mode-overlay hidden" id="verifyOverlay">
+  <div class="result-box">
+    <h2>🔒 ตรวจสอบผลคะแนน (สำหรับครู)</h2>
+    <div class="r-sub">วางข้อความทั้งหมดจากอีเมลของนักเรียนลงในช่อง แล้วกดตรวจสอบ</div>
+    <textarea class="verify-input" id="verifyInput" placeholder="วางข้อความจากอีเมลที่นี่ (ตั้งแต่บรรทัด &quot;ผลคะแนน SigFig Quest&quot; จนถึงรหัสตรวจสอบ)"></textarea>
+    <div class="verify-result" id="verifyResult"></div>
+    <div class="result-actions" style="margin-top:12px">
+      <button class="r-mail" onclick="verifyReport()">🔍 ตรวจสอบ</button>
+      <button class="r-close" onclick="document.getElementById('verifyOverlay').classList.add('hidden')">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODE SELECT -->
+<div class="mode-overlay" id="modeOverlay">
+  <div class="mode-floats" aria-hidden="true">
+    <span class="mf mf0">0.0052</span>
+    <span class="mf mf1">×10³</span>
+    <span class="mf mf2">Ω</span>
+    <span class="mf mf3">V = IR</span>
+    <span class="mf mf4">3 ตำแหน่ง</span>
+    <span class="mf mf5">12.0</span>
+    <span class="mf mf6">2.50</span>
+    <span class="mf mf7">⚡</span>
+    <span class="mf mf8">🔬</span>
+    <span class="mf mf9">1.5 V</span>
+    <span class="mf mf10">0.125 A</span>
+    <span class="mf mf11">🧪</span>
+    <span class="mf mf12">4.80</span>
+    <span class="mf mf13">✨</span>
+  </div>
+  <div class="mode-box">
+    <div class="mode-badge">🎴 เกมบัตรคำ · เลขนัยสำคัญ</div>
+    <div class="mode-title"><span class="mt-flask">⚗️</span> SigFig Quest</div>
+    <div class="mode-q">พร้อมลุยหรือยัง? <b>เลือกโหมดการเล่น</b> แล้วไปกันเลย!</div>
+    <div class="mode-choices">
+      <button class="mode-card group" onclick="startMode('group')">
+        <span class="m-art" aria-hidden="true">
+          <span class="av a1">A</span><span class="av a2">B</span><span class="av a3">C</span><span class="av a4">D</span>
+          <span class="m-burst">VS</span>
+        </span>
+        <span class="m-title">เล่นแบบกลุ่ม</span>
+        <span class="m-desc">แข่งกัน 4 กลุ่มบนจอเดียว<br>ครูจั่วบัตร กลุ่มไหนถึง 20 คะแนนก่อนชนะ!</span>
+        <span class="m-tags"><span>👥 4 กลุ่ม</span><span>🏆 แข่งสด</span><span>🖥️ จอเดียว</span></span>
+        <span class="mode-go">🚀 เริ่มเล่นแบบกลุ่ม</span>
+      </button>
+      <div class="mode-card solo">
+        <span class="m-art" aria-hidden="true">
+          <span class="hero">🧑‍🔬</span>
+          <span class="star s1">⭐</span><span class="star s2">✨</span><span class="star s3">⭐</span>
+        </span>
+        <span class="m-title">เล่นแบบเดี่ยว</span>
+        <span class="m-desc">ท้าทายตัวเองทีละคน พิมพ์คำตอบ<br>ระบบตรวจทันที จบแล้วส่งคะแนนถึงครู</span>
+        <span class="m-tags"><span>⌨️ พิมพ์ตอบ</span><span>⚡ ตรวจทันที</span><span>📧 ส่งครู</span></span>
+        <input type="text" id="soloNameInput" maxlength="40" placeholder="✏️ พิมพ์ชื่อ-เลขที่ของผู้เล่น"
+          onkeydown="if(event.key==='Enter') startMode('solo')">
+        <button class="mode-go" onclick="startMode('solo')">🎯 เริ่มเล่นแบบเดี่ยว</button>
+      </div>
+    </div>
+    <div class="mode-foot">4 ด่าน · นับนัยสำคัญ → บวก–ลบ → คูณ–หาร → สถานการณ์</div>
+    <div class="install-wrap" id="installWrap">
+      <button class="install-btn" id="installBtn" onclick="installApp()">📲 ติดตั้งเกมลงเครื่อง</button>
+      <div class="install-hint" id="iosHint" style="display:none">
+        📱 ติดตั้งบน iPhone / iPad: แตะปุ่ม <b>แชร์</b> (สี่เหลี่ยมมีลูกศรขึ้น ⬆️) ใน Safari<br>แล้วเลือก <b>"เพิ่มไปยังหน้าจอโฮม"</b>
+      </div>
+    </div>
+  </div>
+</div>
+<button class="sound-toggle" id="soundToggle" onclick="toggleSound()" title="เปิด/ปิดเสียง">🔊</button>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="game-header">
+    <div class="game-title">⚗️ SigFig Quest</div>
+    <div class="game-subtitle">เกมบัตรคำ · เลขนัยสำคัญ · <span id="modeLabel">เล่นเป็นกลุ่ม</span></div>
+    <button class="mode-switch" onclick="openModeSelect()">🔁 เปลี่ยนโหมดการเล่น</button>
+  </div>
+
+  <!-- WINNER BANNER -->
+  <div class="winner-banner group-only" id="winnerBanner">
+    <h2>🏆 <span id="winnerName"></span> ชนะ!</h2>
+    <p>ยอดเยี่ยม! เล่นรอบใหม่หรือเปลี่ยนด่านได้เลย</p>
+  </div>
+
+  <!-- SCOREBOARD -->
+  <div class="solo-board solo-only" id="soloBoard">
+    <div class="solo-stat name"><div class="s-label">ผู้เล่น</div><div class="s-value" id="soloName">-</div></div>
+    <div class="solo-stat pts"><div class="s-label">คะแนน</div><div class="s-value" id="soloPts">0</div></div>
+    <div class="solo-stat acc"><div class="s-label">ตอบถูก</div><div class="s-value" id="soloAcc">0/0</div><div class="s-sub" id="soloPct">0%</div></div>
+    <div class="solo-stat streak"><div class="s-label">ถูกติดกัน</div><div class="s-value" id="soloStreak">0</div><div class="s-sub" id="soloBest">สูงสุด 0</div></div>
+  </div>
+  <button class="finish-btn solo-only" onclick="openResults()">🏁 จบเกม &amp; ส่งคะแนนให้ครู</button>
+
+  <div class="scoreboard group-only" id="scoreboard">
+    <div class="score-card t1" id="sc0">
+      <div class="team-name">กลุ่ม A</div>
+      <div class="team-points" id="pts0">0</div>
+      <div class="score-btns">
+        <button class="score-btn plus" onclick="addScore(0,1)">+</button>
+        <button class="score-btn minus" onclick="addScore(0,-1)">−</button>
+      </div>
+    </div>
+    <div class="score-card t2" id="sc1">
+      <div class="team-name">กลุ่ม B</div>
+      <div class="team-points" id="pts1">0</div>
+      <div class="score-btns">
+        <button class="score-btn plus" onclick="addScore(1,1)">+</button>
+        <button class="score-btn minus" onclick="addScore(1,-1)">−</button>
+      </div>
+    </div>
+    <div class="score-card t3" id="sc2">
+      <div class="team-name">กลุ่ม C</div>
+      <div class="team-points" id="pts2">0</div>
+      <div class="score-btns">
+        <button class="score-btn plus" onclick="addScore(2,1)">+</button>
+        <button class="score-btn minus" onclick="addScore(2,-1)">−</button>
+      </div>
+    </div>
+    <div class="score-card t4" id="sc3">
+      <div class="team-name">กลุ่ม D</div>
+      <div class="team-points" id="pts3">0</div>
+      <div class="score-btns">
+        <button class="score-btn plus" onclick="addScore(3,1)">+</button>
+        <button class="score-btn minus" onclick="addScore(3,-1)">−</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE TABS -->
+  <div class="stage-nav">
+    <button class="stage-btn s1 active" onclick="switchStage(0)">
+      <span class="stage-label">ด่าน 1</span>
+      <span class="stage-name">🔢 นับนัยสำคัญ</span>
+    </button>
+    <button class="stage-btn s2" onclick="switchStage(1)">
+      <span class="stage-label">ด่าน 2</span>
+      <span class="stage-name">➕ บวก–ลบ</span>
+    </button>
+    <button class="stage-btn s3" onclick="switchStage(2)">
+      <span class="stage-label">ด่าน 3</span>
+      <span class="stage-name">✖️ คูณ–หาร</span>
+    </button>
+    <button class="stage-btn s4" onclick="switchStage(3)">
+      <span class="stage-label">ด่าน 4</span>
+      <span class="stage-name">⚡ สถานการณ์</span>
+    </button>
+  </div>
+
+  <!-- ============ STAGE 1 ============ -->
+  <div class="game-area active" id="area0">
+    <div class="stage-banner s1">
+      <div class="stage-icon">🔢</div>
+      <div class="stage-info">
+        <h3 style="color:var(--stage1)">ด่าน 1 — นับเลขนัยสำคัญ</h3>
+        <div class="rule-text">
+          นับว่าตัวเลขมีกี่ตำแหน่งนัยสำคัญ<br>
+          <strong>ศูนย์นำหน้า = ไม่นับ</strong> | ศูนย์ระหว่างตัวเลข = นับ | <strong>ศูนย์หลังทศนิยม = นับ</strong>
+        </div>
+      </div>
+    </div>
+    <div class="how-to-play">
+      <h4>🎮 วิธีเล่น</h4>
+      <ol class="group-only">
+        <li>ครูกด <strong>"จั่วบัตร"</strong> — ตัวเลขจะปรากฏบนหน้าจอให้ทุกกลุ่มเห็น</li>
+        <li><strong>ทุกกลุ่มคิดและเขียนคำตอบพร้อมกัน</strong> ภายใน 30 วินาที</li>
+        <li>กด <strong>พลิกบัตร</strong> เพื่อดูเฉลย — กลุ่มที่ตอบถูกกด ＋ ให้ตัวเอง</li>
+        <li>กลุ่มไหนได้คะแนนสูงสุดชนะ!</li>
+      </ol>
+      <ol class="solo-only">
+        <li>กด <strong>"จั่วบัตร"</strong> แล้วพิมพ์คำตอบในช่องใต้บัตร ภายใน 30 วินาที</li>
+        <li>กด <strong>ส่งคำตอบ</strong> (หรือ Enter) — ระบบตรวจและพลิกบัตรให้ดูเฉลยทันที · พิมพ์เป็น<strong>ตัวเลข</strong> เช่น 3</li>
+        <li>ตอบถูกได้ <strong>1 คะแนน</strong> · หมดเวลาหรือข้ามบัตรนับว่ายังตอบไม่ถูก</li>
+        
+      </ol>
+    </div>
+    <div class="timer-bar" id="timerBar0">
+      <div class="timer-display ok" id="timerNum0">30</div>
+      <div class="timer-track"><div class="timer-fill" id="timerFill0" style="width:100%"></div></div>
+      <div class="timer-controls">
+        <button class="btn-timer start" onclick="startTimer(0)">▶ เริ่ม</button>
+        <button class="btn-timer stop"  onclick="stopTimer(0)">■ หยุด</button>
+      </div>
+    </div>
+    <div class="card-controls">
+      <button class="btn-draw s1" onclick="drawCard(0)" id="drawBtn0">🎴 จั่วบัตร</button>
+      <div class="card-remaining" id="rem0">บัตรที่เหลือ: <span id="remCount0">12</span> ใบ</div>
+    </div>
+    <div class="flash-card-wrapper" id="cardWrap0"></div>
+    <div class="answer-box solo-only" id="ansBox0">
+      <div class="answer-row">
+        <input type="text" id="ansInput0" inputmode="text" autocomplete="off" disabled
+          placeholder="กดจั่วบัตรก่อน แล้วพิมพ์คำตอบที่นี่" data-ph="จำนวนตำแหน่ง เช่น 3"
+          onkeydown="if(event.key==='Enter') submitAnswer(0)">
+        <button class="ans-submit" id="ansBtn0" onclick="submitAnswer(0)" disabled>ส่งคำตอบ</button>
+      </div>
+      <div class="ans-result" id="ansResult0"></div>
+    </div>
+    <div class="history-section">
+      <div class="history-label">บัตรที่ผ่านมา</div>
+      <div class="history-list" id="hist0"></div>
+    </div>
+    <button class="btn-reset" onclick="resetDeck(0)">🔄 รีเซ็ตบัตร</button>
+  </div>
+
+  <!-- ============ STAGE 2 ============ -->
+  <div class="game-area" id="area1">
+    <div class="stage-banner s2">
+      <div class="stage-icon">➕</div>
+      <div class="stage-info">
+        <h3 style="color:var(--stage2)">ด่าน 2 — บวกและลบ</h3>
+        <div class="rule-text">
+          ผลลัพธ์มีตำแหน่งทศนิยม = ตัวที่มีทศนิยม <strong>น้อยที่สุด</strong><br>
+          ตอบต้องระบุหน่วยของตำแหน่งสุดท้ายด้วย
+        </div>
+      </div>
+    </div>
+    <div class="how-to-play">
+      <h4>🎮 วิธีเล่น</h4>
+      <ol class="group-only">
+        <li>จั่วบัตร — แต่ละกลุ่มคำนวณใส่กระดาษภายใน 60 วินาที</li>
+        <li>ทุกกลุ่มยกกระดาษพร้อมกัน — กลุ่มที่ถูกได้คะแนน</li>
+        <li>พลิกบัตรดูเฉลยพร้อมคำอธิบาย</li>
+      </ol>
+      <ol class="solo-only">
+        <li>กด <strong>"จั่วบัตร"</strong> แล้วพิมพ์คำตอบในช่องใต้บัตร ภายใน 60 วินาที</li>
+        <li>กด <strong>ส่งคำตอบ</strong> (หรือ Enter) — ระบบตรวจและพลิกบัตรให้ดูเฉลยทันที · ต้องเขียนให้ถูกจำนวนเลขนัยสำคัญด้วย เช่น 72.0 กับ 72 ถือว่าไม่เหมือนกัน</li>
+        <li>ตอบถูกได้ <strong>1 คะแนน</strong> · หมดเวลาหรือข้ามบัตรนับว่ายังตอบไม่ถูก</li>
+        
+      </ol>
+    </div>
+    <div class="timer-bar" id="timerBar1">
+      <div class="timer-display ok" id="timerNum1">60</div>
+      <div class="timer-track"><div class="timer-fill" id="timerFill1" style="width:100%"></div></div>
+      <div class="timer-controls">
+        <button class="btn-timer start" onclick="startTimer(1)">▶ เริ่ม</button>
+        <button class="btn-timer stop"  onclick="stopTimer(1)">■ หยุด</button>
+      </div>
+    </div>
+    <div class="card-controls">
+      <button class="btn-draw s2" onclick="drawCard(1)" id="drawBtn1">🎴 จั่วบัตร</button>
+      <div class="card-remaining" id="rem1">บัตรที่เหลือ: <span id="remCount1">10</span> ใบ</div>
+    </div>
+    <div class="flash-card-wrapper" id="cardWrap1"></div>
+    <div class="answer-box solo-only" id="ansBox1">
+      <div class="answer-row">
+        <input type="text" id="ansInput1" inputmode="text" autocomplete="off" disabled
+          placeholder="กดจั่วบัตรก่อน แล้วพิมพ์คำตอบที่นี่" data-ph="พิมพ์คำตอบ เช่น 19.5"
+          onkeydown="if(event.key==='Enter') submitAnswer(1)">
+        <button class="ans-submit" id="ansBtn1" onclick="submitAnswer(1)" disabled>ส่งคำตอบ</button>
+      </div>
+      <div class="ans-tools">
+        <button onclick="insertAns(1,'x10^')">×10^</button>
+        <button onclick="insertAns(1,'-')">−</button>
+        <span>เลขยกกำลังพิมพ์แบบ 2.0x10^-3 หรือ 2.0e-3 ก็ได้</span>
+      </div>
+      <div class="ans-result" id="ansResult1"></div>
+    </div>
+    <div class="history-section">
+      <div class="history-label">บัตรที่ผ่านมา</div>
+      <div class="history-list" id="hist1"></div>
+    </div>
+    <button class="btn-reset" onclick="resetDeck(1)">🔄 รีเซ็ตบัตร</button>
+  </div>
+
+  <!-- ============ STAGE 3 ============ -->
+  <div class="game-area" id="area2">
+    <div class="stage-banner s3">
+      <div class="stage-icon">✖️</div>
+      <div class="stage-info">
+        <h3 style="color:var(--stage3)">ด่าน 3 — คูณและหาร</h3>
+        <div class="rule-text">
+          ผลลัพธ์มีเลขนัยสำคัญ = ตัวที่มีนัยสำคัญ <strong>น้อยที่สุด</strong><br>
+          บัตรด่านนี้ได้ <strong>2 คะแนน</strong> ต่อใบ
+        </div>
+      </div>
+    </div>
+    <div class="how-to-play">
+      <h4>🎮 วิธีเล่น (DOUBLE POINTS)</h4>
+      <ol class="group-only">
+        <li>จั่วบัตร — คำนวณใน 60 วินาที</li>
+        <li>กลุ่มที่ตอบถูกก่อนได้ <strong>2 คะแนน</strong>!</li>
+      </ol>
+      <ol class="solo-only">
+        <li>กด <strong>"จั่วบัตร"</strong> แล้วพิมพ์คำตอบในช่องใต้บัตร ภายใน 60 วินาที</li>
+        <li>กด <strong>ส่งคำตอบ</strong> (หรือ Enter) — ระบบตรวจและพลิกบัตรให้ดูเฉลยทันที · ต้องเขียนให้ถูกจำนวนเลขนัยสำคัญด้วย เช่น 72.0 กับ 72 ถือว่าไม่เหมือนกัน</li>
+        <li>ตอบถูกได้ <strong>2 คะแนน</strong> · หมดเวลาหรือข้ามบัตรนับว่ายังตอบไม่ถูก</li>
+        
+      </ol>
+    </div>
+    <div class="timer-bar" id="timerBar2">
+      <div class="timer-display ok" id="timerNum2">60</div>
+      <div class="timer-track"><div class="timer-fill" id="timerFill2" style="width:100%"></div></div>
+      <div class="timer-controls">
+        <button class="btn-timer start" onclick="startTimer(2)">▶ เริ่ม</button>
+        <button class="btn-timer stop"  onclick="stopTimer(2)">■ หยุด</button>
+      </div>
+    </div>
+    <div class="card-controls">
+      <button class="btn-draw s3" onclick="drawCard(2)" id="drawBtn2">🎴 จั่วบัตร</button>
+      <div class="card-remaining" id="rem2">บัตรที่เหลือ: <span id="remCount2">10</span> ใบ</div>
+    </div>
+    <div class="flash-card-wrapper" id="cardWrap2"></div>
+    <div class="answer-box solo-only" id="ansBox2">
+      <div class="answer-row">
+        <input type="text" id="ansInput2" inputmode="text" autocomplete="off" disabled
+          placeholder="กดจั่วบัตรก่อน แล้วพิมพ์คำตอบที่นี่" data-ph="พิมพ์คำตอบ เช่น 32 หรือ 2.0x10^-3"
+          onkeydown="if(event.key==='Enter') submitAnswer(2)">
+        <button class="ans-submit" id="ansBtn2" onclick="submitAnswer(2)" disabled>ส่งคำตอบ</button>
+      </div>
+      <div class="ans-tools">
+        <button onclick="insertAns(2,'x10^')">×10^</button>
+        <button onclick="insertAns(2,'-')">−</button>
+        <span>เลขยกกำลังพิมพ์แบบ 2.0x10^-3 หรือ 2.0e-3 ก็ได้</span>
+      </div>
+      <div class="ans-result" id="ansResult2"></div>
+    </div>
+    <div class="history-section">
+      <div class="history-label">บัตรที่ผ่านมา</div>
+      <div class="history-list" id="hist2"></div>
+    </div>
+    <button class="btn-reset" onclick="resetDeck(2)">🔄 รีเซ็ตบัตร</button>
+  </div>
+
+  <!-- ============ STAGE 4 ============ -->
+  <div class="game-area" id="area3">
+    <div class="stage-banner s4">
+      <div class="stage-icon">⚡</div>
+      <div class="stage-info">
+        <h3 style="color:var(--stage3x)">ด่าน 4 — สถานการณ์การวัด (V = IR)</h3>
+        <div class="rule-text">
+          ใช้กฎของโอห์ม <strong>V = IR</strong> · <strong>I = V/R</strong> · <strong>R = V/I</strong> คำนวณจากค่าที่วัดได้<br>
+          คูณ/หาร → ตอบตามจำนวนนัยสำคัญที่<strong>น้อยที่สุด</strong> · ตอบเป็นตัวเลขในหน่วยที่โจทย์ถาม<br>
+          ตอบถูก <strong>3 คะแนน</strong> | เวลา 90 วินาที
+        </div>
+      </div>
+    </div>
+    <div class="how-to-play">
+      <h4>🎮 วิธีเล่น</h4>
+      <ol class="group-only">
+        <li>ทุกกลุ่มคำนวณพร้อมกัน 90 วินาที</li>
+        <li>ยกกระดาษพร้อมกัน — กลุ่มที่ตอบถูกได้ 3 คะแนน</li>
+        <li>กลุ่มที่ได้คะแนนสูงสุดตอนสิ้นสุดบัตรชนะ!</li>
+      </ol>
+      <ol class="solo-only">
+        <li>กด <strong>"จั่วบัตร"</strong> แล้วพิมพ์คำตอบในช่องใต้บัตร ภายใน 90 วินาที</li>
+        <li>กด <strong>ส่งคำตอบ</strong> (หรือ Enter) — ระบบตรวจและพลิกบัตรให้ดูเฉลยทันที · ต้องเขียนให้ถูกจำนวนเลขนัยสำคัญด้วย เช่น 72.0 กับ 72 ถือว่าไม่เหมือนกัน</li>
+        <li>ตอบถูกได้ <strong>3 คะแนน</strong> · หมดเวลาหรือข้ามบัตรนับว่ายังตอบไม่ถูก</li>
+        <li>เล่นจบแล้วกด <strong>🏁 จบเกม &amp; ส่งคะแนนให้ครู</strong> ด้านบน</li>
+      </ol>
+    </div>
+    <div class="timer-bar" id="timerBar3">
+      <div class="timer-display ok" id="timerNum3">90</div>
+      <div class="timer-track"><div class="timer-fill" id="timerFill3" style="width:100%"></div></div>
+      <div class="timer-controls">
+        <button class="btn-timer start" onclick="startTimer(3)">▶ เริ่ม</button>
+        <button class="btn-timer stop"  onclick="stopTimer(3)">■ หยุด</button>
+      </div>
+    </div>
+    <div class="card-controls">
+      <button class="btn-draw s4" onclick="drawCard(3)" id="drawBtn3">🎴 จั่วบัตร</button>
+      <div class="card-remaining" id="rem3">บัตรที่เหลือ: <span id="remCount3">8</span> ใบ</div>
+    </div>
+    <div class="flash-card-wrapper" id="cardWrap3"></div>
+    <div class="answer-box solo-only" id="ansBox3">
+      <div class="answer-row">
+        <input type="text" id="ansInput3" inputmode="text" autocomplete="off" disabled
+          placeholder="กดจั่วบัตรก่อน แล้วพิมพ์คำตอบที่นี่" data-ph="ตัวเลขในหน่วยที่โจทย์ถาม เช่น 12.0"
+          onkeydown="if(event.key==='Enter') submitAnswer(3)">
+        <button class="ans-submit" id="ansBtn3" onclick="submitAnswer(3)" disabled>ส่งคำตอบ</button>
+      </div>
+      <div class="ans-tools">
+        <button onclick="insertAns(3,'x10^')">×10^</button>
+        <button onclick="insertAns(3,'-')">−</button>
+        <span>เลขยกกำลังพิมพ์แบบ 2.0x10^-3 หรือ 2.0e-3 ก็ได้</span>
+      </div>
+      <div class="ans-result" id="ansResult3"></div>
+    </div>
+    <div class="history-section">
+      <div class="history-label">บัตรที่ผ่านมา</div>
+      <div class="history-list" id="hist3"></div>
+    </div>
+    <button class="btn-reset" onclick="resetDeck(3)">🔄 รีเซ็ตบัตร</button>
+  </div>
+
+  <!-- ──── FEEDBACK SECTION ──── -->
+  <div class="feedback-section">
+    <div class="feedback-title">💬 ข้อเสนอแนะ / ติชม</div>
+    <div class="feedback-subtitle">PLAYER FEEDBACK — ครูสามารถดูคำตอบด้านล่างได้ทันที</div>
+    <div class="feedback-form">
+      <select class="feedback-group-select" id="feedbackGroup">
+        <option value="">— เลือกกลุ่ม —</option>
+        <option value="กลุ่มที่ 1">กลุ่มที่ 1</option>
+        <option value="กลุ่มที่ 2">กลุ่มที่ 2</option>
+        <option value="กลุ่มที่ 3">กลุ่มที่ 3</option>
+        <option value="กลุ่มที่ 4">กลุ่มที่ 4</option>
+        <option value="กลุ่มที่ 5">กลุ่มที่ 5</option>
+        <option value="กลุ่มที่ 6">กลุ่มที่ 6</option>
+        <option value="นักเรียนทั่วไป">นักเรียนทั่วไป</option>
+      </select>
+      <input class="feedback-input" id="feedbackInput" type="text"
+        placeholder="พิมพ์ข้อเสนอแนะ หรือความคิดเห็น..."
+        maxlength="200"
+        onkeydown="if(event.key==='Enter') submitFeedback()">
+      <button class="feedback-submit" onclick="submitFeedback()">ส่ง ✉️</button>
+    </div>
+    <div class="feedback-list" id="feedbackList">
+      <div class="feedback-empty" id="feedbackEmpty">ยังไม่มีข้อเสนอแนะ — ผู้เล่นสามารถพิมพ์ได้เลย</div>
+    </div>
+    <div class="feedback-clear" id="feedbackClearWrap" style="display:none">
+      <button class="feedback-clear-btn" onclick="clearFeedback()">🗑️ ล้างทั้งหมด</button>
+    </div>
+  </div>
+
+  <button class="teacher-link" onclick="openVerify()">🔒 สำหรับครู: ตรวจสอบผลคะแนนที่นักเรียนส่งมา</button>
+
+</div><!-- /app -->
+
+<script>
+// ══════════════════════════════════════════
+//   WEB AUDIO ENGINE — LOUD & EXCITING
+// ══════════════════════════════════════════
+let audioCtx = null;
+let soundOn = true;
+
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function toggleSound() {
+  soundOn = !soundOn;
+  const btn = document.getElementById('soundToggle');
+  btn.textContent = soundOn ? '🔊' : '🔇';
+  btn.classList.toggle('muted', !soundOn);
+}
+
+function out(ctx, vol=1.0) {
+  const g = ctx.createGain(); g.gain.value = vol;
+  g.connect(ctx.destination); return g;
+}
+
+/* — DRAW: cinematic whoosh + impact — */
+function playDraw() {
+  if (!soundOn) return;
+  const ctx = getCtx();
+  const o = out(ctx, 1.0);
+  // whoosh
+  const buf = ctx.createBuffer(1, ctx.sampleRate*0.35, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.5);
+  const src = ctx.createBufferSource(); src.buffer=buf;
+  const filt=ctx.createBiquadFilter(); filt.type='bandpass'; filt.frequency.value=1200; filt.Q.value=0.4;
+  filt.frequency.exponentialRampToValueAtTime(150, ctx.currentTime+0.3);
+  const wg=ctx.createGain();
+  wg.gain.setValueAtTime(0,ctx.currentTime); wg.gain.linearRampToValueAtTime(0.9,ctx.currentTime+0.04);
+  wg.gain.linearRampToValueAtTime(0,ctx.currentTime+0.35);
+  src.connect(filt);filt.connect(wg);wg.connect(o); src.start();src.stop(ctx.currentTime+0.4);
+  // impact
+  const imp=ctx.createOscillator(); const ig=ctx.createGain();
+  imp.type='sine'; imp.frequency.setValueAtTime(200,ctx.currentTime+0.28);
+  imp.frequency.exponentialRampToValueAtTime(35,ctx.currentTime+0.55);
+  ig.gain.setValueAtTime(0,ctx.currentTime+0.27); ig.gain.linearRampToValueAtTime(1.0,ctx.currentTime+0.30);
+  ig.gain.linearRampToValueAtTime(0,ctx.currentTime+0.58);
+  imp.connect(ig);ig.connect(o); imp.start(ctx.currentTime+0.27);imp.stop(ctx.currentTime+0.6);
+  // high ping
+  const ping=ctx.createOscillator(); const pg=ctx.createGain();
+  ping.type='sine'; ping.frequency.value=2000;
+  pg.gain.setValueAtTime(0.6,ctx.currentTime+0.29); pg.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6);
+  ping.connect(pg);pg.connect(o); ping.start(ctx.currentTime+0.29);ping.stop(ctx.currentTime+0.62);
+}
+
+/* — FLIP: dramatic synthwave reveal — */
+function playFlip() {
+  if (!soundOn) return;
+  const ctx = getCtx();
+  const o = out(ctx, 1.0);
+  [0,0.06,0.12,0.18].forEach((offset,i)=>{
+    const osc=ctx.createOscillator(); const g=ctx.createGain();
+    osc.type=i%2===0?'triangle':'sine';
+    osc.frequency.setValueAtTime(500+i*400,ctx.currentTime+offset);
+    osc.frequency.exponentialRampToValueAtTime(2000+i*300,ctx.currentTime+offset+0.2);
+    g.gain.setValueAtTime(0.45,ctx.currentTime+offset); g.gain.linearRampToValueAtTime(0,ctx.currentTime+offset+0.25);
+    osc.connect(g);g.connect(o); osc.start(ctx.currentTime+offset);osc.stop(ctx.currentTime+offset+0.28);
+  });
+  // noise burst
+  const nbuf=ctx.createBuffer(1,ctx.sampleRate*0.08,ctx.sampleRate);
+  const nd=nbuf.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i]=(Math.random()*2-1);
+  const ns=ctx.createBufferSource(); ns.buffer=nbuf;
+  const nf=ctx.createBiquadFilter(); nf.type='highpass'; nf.frequency.value=4000;
+  const ng=ctx.createGain(); ng.gain.setValueAtTime(0.5,ctx.currentTime+0.18); ng.gain.linearRampToValueAtTime(0,ctx.currentTime+0.28);
+  ns.connect(nf);nf.connect(ng);ng.connect(o); ns.start(ctx.currentTime+0.18);ns.stop(ctx.currentTime+0.3);
+}
+
+/* — TICK: electronic click, gets louder near end — */
+function playTick(urgent=false) {
+  if (!soundOn) return;
+  const ctx = getCtx();
+  const o = out(ctx, urgent ? 1.0 : 0.55);
+  const osc=ctx.createOscillator(); const g=ctx.createGain();
+  osc.type='square'; osc.frequency.value=urgent?1500:900;
+  g.gain.setValueAtTime(urgent?1.0:0.55,ctx.currentTime);
+  g.gain.linearRampToValueAtTime(0,ctx.currentTime+(urgent?0.03:0.05));
+  osc.connect(g);g.connect(o); osc.start();osc.stop(ctx.currentTime+0.06);
+  if(urgent){
+    const o2=ctx.createOscillator(); const g2=ctx.createGain();
+    o2.type='sawtooth'; o2.frequency.value=3000;
+    g2.gain.setValueAtTime(0.5,ctx.currentTime); g2.gain.linearRampToValueAtTime(0,ctx.currentTime+0.025);
+    o2.connect(g2);g2.connect(o); o2.start();o2.stop(ctx.currentTime+0.03);
+  }
+}
+
+/* — WARN: triple alarm siren — */
+function playWarn() {
+  if (!soundOn) return;
+  const ctx = getCtx();
+  const o = out(ctx, 1.0);
+  [0,0.1,0.2].forEach(offset=>{
+    const osc=ctx.createOscillator(); const g=ctx.createGain();
+    osc.type='sawtooth';
+    osc.frequency.setValueAtTime(1200,ctx.currentTime+offset);
+    osc.frequency.linearRampToValueAtTime(850,ctx.currentTime+offset+0.09);
+    g.gain.setValueAtTime(0.8,ctx.currentTime+offset); g.gain.linearRampToValueAtTime(0,ctx.currentTime+offset+0.11);
+    osc.connect(g);g.connect(o); osc.start(ctx.currentTime+offset);osc.stop(ctx.currentTime+offset+0.13);
+  });
+}
+
+/* — BUZZER: explosive time's up — */
+function playBuzzer() {
+  if (!soundOn) return;
+  const ctx = getCtx();
+  const o = out(ctx, 1.0);
+  [0,0.2,0.4,0.6].forEach((offset,i)=>{
+    const osc=ctx.createOscillator(); const g=ctx.createGain();
+    osc.type='sawtooth';
+    osc.frequency.setValueAtTime(320-i*30,ctx.currentTime+offset);
+    osc.frequency.exponentialRampToValueAtTime(55,ctx.currentTime+offset+0.18);
+    g.gain.setValueAtTime(0.9,ctx.currentTime+offset); g.gain.linearRampToValueAtTime(0,ctx.currentTime+offset+0.2);
+    osc.connect(g);g.connect(o); osc.start(ctx.currentTime+offset);osc.stop(ctx.currentTime+offset+0.22);
+  });
+  // sub bass
+  const sub=ctx.createOscillator(); const sg=ctx.createGain();
+  sub.type='sine'; sub.frequency.value=50;
+  sg.gain.setValueAtTime(1.0,ctx.currentTime); sg.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.9);
+  sub.connect(sg);sg.connect(o); sub.start();sub.stop(ctx.currentTime+0.95);
+  // noise explosion
+  const ebuf=ctx.createBuffer(1,ctx.sampleRate*0.18,ctx.sampleRate);
+  const ed=ebuf.getChannelData(0);
+  for(let i=0;i<ed.length;i++) ed[i]=(Math.random()*2-1)*Math.pow(1-i/ed.length,0.4);
+  const es=ctx.createBufferSource(); es.buffer=ebuf;
+  const ef=ctx.createBiquadFilter(); ef.type='lowpass'; ef.frequency.value=2500;
+  const eg=ctx.createGain(); eg.gain.value=1.0;
+  es.connect(ef);ef.connect(eg);eg.connect(o); es.start();es.stop(ctx.currentTime+0.2);
+}
+
+/* — SCORE +: TV gameshow fanfare — */
+function playScore() {
+  if (!soundOn) return;
+  const ctx = getCtx();
+  const o = out(ctx, 1.0);
+  [523,659,784,1047,1319].forEach((f,i)=>{
+    const osc=ctx.createOscillator(); const g=ctx.createGain();
+    osc.type=i<3?'sine':'triangle'; osc.frequency.value=f;
+    const t=ctx.currentTime+i*0.09;
+    g.gain.setValueAtTime(0.7,t); g.gain.linearRampToValueAtTime(0,t+0.28);
+    osc.connect(g);g.connect(o); osc.start(t);osc.stop(t+0.32);
+  });
+  // sparkle
+  for(let i=0;i<10;i++){
+    const osc=ctx.createOscillator(); const g=ctx.createGain();
+    osc.type='sine'; osc.frequency.value=1800+Math.random()*2500;
+    const t=ctx.currentTime+i*0.04;
+    g.gain.setValueAtTime(0.2,t); g.gain.linearRampToValueAtTime(0,t+0.09);
+    osc.connect(g);g.connect(o); osc.start(t);osc.stop(t+0.1);
+  }
+}
+
+/* — SCORE -: heavy descend — */
+function playMinus() {
+  if (!soundOn) return;
+  const ctx = getCtx();
+  const o = out(ctx, 1.0);
+  const osc=ctx.createOscillator(); const g=ctx.createGain();
+  osc.type='sawtooth';
+  osc.frequency.setValueAtTime(350,ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(45,ctx.currentTime+0.35);
+  g.gain.setValueAtTime(1.0,ctx.currentTime); g.gain.linearRampToValueAtTime(0,ctx.currentTime+0.38);
+  osc.connect(g);g.connect(o); osc.start();osc.stop(ctx.currentTime+0.4);
+  [440,330,220].forEach((f,i)=>{
+    const o2=ctx.createOscillator(); const g2=ctx.createGain();
+    o2.type='triangle'; o2.frequency.value=f;
+    const t=ctx.currentTime+i*0.13;
+    g2.gain.setValueAtTime(0.5,t); g2.gain.linearRampToValueAtTime(0,t+0.2);
+    o2.connect(g2);g2.connect(o); o2.start(t);o2.stop(t+0.22);
+  });
+}
+
+/* — WINNER: full fanfare + drums + hihat — */
+function playWinner() {
+  if (!soundOn) return;
+  const ctx = getCtx();
+  const o = out(ctx, 1.0);
+  // melody
+  const mel=[523,659,784,1047,784,1047,1319,1047,1319,1568];
+  const tim=[0,0.15,0.3,0.45,0.65,0.75,0.88,1.05,1.15,1.25];
+  mel.forEach((f,i)=>{
+    const osc=ctx.createOscillator(); const g=ctx.createGain();
+    osc.type=i>5?'triangle':'sine'; osc.frequency.value=f;
+    const t=ctx.currentTime+tim[i];
+    g.gain.setValueAtTime(0.55,t); g.gain.linearRampToValueAtTime(0,t+0.32);
+    osc.connect(g);g.connect(o); osc.start(t);osc.stop(t+0.36);
+  });
+  // kick drums
+  [0,0.3,0.6,0.9,1.2].forEach(offset=>{
+    const kick=ctx.createOscillator(); const kg=ctx.createGain();
+    kick.type='sine'; kick.frequency.setValueAtTime(220,ctx.currentTime+offset);
+    kick.frequency.exponentialRampToValueAtTime(35,ctx.currentTime+offset+0.18);
+    kg.gain.setValueAtTime(1.0,ctx.currentTime+offset); kg.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+offset+0.28);
+    kick.connect(kg);kg.connect(o); kick.start(ctx.currentTime+offset);kick.stop(ctx.currentTime+offset+0.3);
+  });
+  // hihat
+  for(let i=0;i<20;i++){
+    const hbuf=ctx.createBuffer(1,ctx.sampleRate*0.04,ctx.sampleRate);
+    const hd=hbuf.getChannelData(0); for(let j=0;j<hd.length;j++) hd[j]=(Math.random()*2-1)*Math.pow(1-j/hd.length,2);
+    const hs=ctx.createBufferSource(); hs.buffer=hbuf;
+    const hf=ctx.createBiquadFilter(); hf.type='highpass'; hf.frequency.value=7000;
+    const hg=ctx.createGain(); hg.gain.value=0.4;
+    hs.connect(hf);hf.connect(hg);hg.connect(o);
+    hs.start(ctx.currentTime+i*0.075); hs.stop(ctx.currentTime+i*0.075+0.05);
+  }
+}
+
+// ══════════════════════════════════════════
+//   TIMER SYSTEM
+// ══════════════════════════════════════════
+const TIMER_SECS = [30, 60, 60, 90];
+let timerState = [null, null, null, null]; // { interval, remaining, total }
+
+function startTimer(stage) {
+  stopTimer(stage); // clear any existing
+  getCtx(); // unlock audio on user gesture
+
+  const total = TIMER_SECS[stage];
+  let remaining = total;
+
+  const bar  = document.getElementById('timerBar'+stage);
+  const num  = document.getElementById('timerNum'+stage);
+  const fill = document.getElementById('timerFill'+stage);
+
+  bar.classList.add('running');
+  updateTimerUI(stage, remaining, total);
+
+  const interval = setInterval(() => {
+    remaining--;
+
+    updateTimerUI(stage, remaining, total);
+
+    if (remaining <= 5 && remaining > 0) {
+      playWarn();
+    } else if (remaining > 5) {
+      playTick(false);
+    }
+
+    if (remaining <= 0) {
+      clearInterval(interval);
+      timerState[stage] = null;
+      playBuzzer();
+      num.textContent = '⏰';
+      fill.style.width = '0%';
+      bar.classList.add('urgent');
+      if (gameMode === 'solo') submitAnswer(stage, true);
+    }
+  }, 1000);
+
+  timerState[stage] = { interval, remaining, total };
+}
+
+function stopTimer(stage) {
+  if (timerState[stage]) {
+    clearInterval(timerState[stage].interval);
+    timerState[stage] = null;
+  }
+  const bar  = document.getElementById('timerBar'+stage);
+  const num  = document.getElementById('timerNum'+stage);
+  const fill = document.getElementById('timerFill'+stage);
+  const total = TIMER_SECS[stage];
+  bar.classList.remove('urgent');
+  num.textContent = total;
+  num.className = 'timer-display ok';
+  fill.style.width = '100%';
+  fill.className = 'timer-fill';
+}
+
+function updateTimerUI(stage, remaining, total) {
+  const num  = document.getElementById('timerNum'+stage);
+  const fill = document.getElementById('timerFill'+stage);
+  const bar  = document.getElementById('timerBar'+stage);
+  const pct  = (remaining / total) * 100;
+
+  num.textContent = remaining;
+  fill.style.width = pct + '%';
+
+  if (remaining <= 5) {
+    num.className = 'timer-display urgent';
+    fill.className = 'timer-fill urgent';
+    bar.classList.add('urgent');
+  } else if (remaining <= total * 0.4) {
+    num.className = 'timer-display warn';
+    fill.className = 'timer-fill warn';
+    bar.classList.remove('urgent');
+  } else {
+    num.className = 'timer-display ok';
+    fill.className = 'timer-fill';
+    bar.classList.remove('urgent');
+  }
+}
+
+// ══════════════════════════════════════════
+//   CARD DATA
+// ══════════════════════════════════════════
+const DECKS = [
+  // STAGE 1 — Counting Sig Figs
+  [
+    { q:'0.0052', a:'2 ตำแหน่ง', exp:'ศูนย์นำหน้าไม่นับ เหลือ 5 และ 2' },
+    { q:'4,500', a:'2 ตำแหน่ง', exp:'นับเฉพาะ 4-5 ศูนย์ตามหลังจำนวนเต็มไม่นับ (ในข้อสอบจะถือว่า 2 ตำแหน่ง ถ้าไม่ระบุสัญกรณ์วิทยาศาสตร์)' },
+    { q:'0.0720', a:'3 ตำแหน่ง', exp:'ศูนย์นำหน้าไม่นับ แต่ศูนย์ท้าย 0.072<u>0</u> นับ' },
+    { q:'3.060 × 10⁴', a:'4 ตำแหน่ง', exp:'3-0-6-0 ล้วนนับ ศูนย์กลางและศูนย์ท้ายทั้งคู่นับ' },
+    { q:'250.0', a:'4 ตำแหน่ง', exp:'2-5-0-0 → มีจุดทศนิยม ทำให้ศูนย์ตามหลังนับด้วย' },
+    { q:'1.00 × 10⁻³', a:'3 ตำแหน่ง', exp:'1-0-0 ทั้งสามตัวนับ เพราะเขียนไว้ในสัญกรณ์วิทยาศาสตร์' },
+    { q:'8.0400', a:'5 ตำแหน่ง', exp:'8-0-4-0-0 ล้วนนับ ศูนย์กลางและท้ายหลังทศนิยม' },
+    { q:'0.100', a:'3 ตำแหน่ง', exp:'ศูนย์นำหน้าไม่นับ เหลือ 1-0-0' },
+    { q:'7 × 10⁶', a:'1 ตำแหน่ง', exp:'มีเพียง 7 เท่านั้น' },
+    { q:'10,000', a:'1 ตำแหน่ง', exp:'ไม่มีจุดทศนิยม → นับเฉพาะ 1 ตัวแรก ศูนย์ตามหลังไม่นับ → 1 นัยสำคัญ' },
+    { q:'0.000501', a:'3 ตำแหน่ง', exp:'ศูนย์นำหน้าไม่นับ เหลือ 5-0-1 (ศูนย์กลางนับ)' },
+    { q:'9.0 × 10²', a:'2 ตำแหน่ง', exp:'9 และ 0 หลังทศนิยมนับ' },
+  ],
+
+  // STAGE 2 — Addition & Subtraction
+  [
+    { q:'13.5 + 4.25 + 1.736', a:'19.5', exp:'1 ทศนิยม (13.5) น้อยสุด → 19.486 → <strong>19.5</strong>' },
+    { q:'82.4 − 7.56', a:'74.8', exp:'1 ทศนิยม (82.4) น้อยสุด → 74.84 → <strong>74.8</strong>' },
+    { q:'0.025 + 1.5 + 0.0048', a:'1.5', exp:'1 ทศนิยม (1.5) น้อยสุด → 1.5298 → <strong>1.5</strong>' },
+    { q:'156.78 − 89.3 + 2.456', a:'69.9', exp:'1 ทศนิยม (89.3) น้อยสุด → 69.936 → <strong>69.9</strong>' },
+    { q:'1200.0 + 345.67 − 12.5', a:'1533.2', exp:'1 ทศนิยม (1200.0, 12.5) → 1533.17 → <strong>1533.2</strong>' },
+    { q:'5.0×10² + 3.25×10²', a:'8.2×10²', exp:'5.0 × 10² (1 ทศนิยม) → 825 → <strong>8.2×10²</strong>' },
+    { q:'0.0084 + 0.00125 − 0.0002', a:'0.0094', exp:'4 ทศนิยม น้อยสุด → 0.00945 → <strong>0.0094</strong> (4 ตำแหน่ง)' },
+    { q:'9.100 − 0.05 + 1.2', a:'10.2', exp:'1 ทศนิยม (1.2) น้อยสุด → 10.25 → <strong>10.2</strong>' },
+    { q:'44.5 + 5.500 + 0.55', a:'50.6', exp:'1 ทศนิยม (44.5) น้อยสุด → 50.55 → <strong>50.6</strong>' },
+    { q:'100.0 − 28.55 + 0.5', a:'72.0', exp:'1 ทศนิยม (100.0, 0.5) → 71.95 → <strong>72.0</strong>' },
+  ],
+
+  // STAGE 3 — Multiplication & Division
+  [
+    { q:'4.5 × 7.2', a:'32', exp:'4.5 (2) × 7.2 (2) → 2 นัยสำคัญ → 32.4 → <strong>32</strong>' },
+    { q:'12.0 ÷ 3.5', a:'3.4', exp:'12.0 (3) ÷ 3.5 (2) → 2 นัยสำคัญ → 3.4286 → <strong>3.4</strong>' },
+    { q:'0.0032 × 45.0', a:'0.14', exp:'0.0032 (2) × 45.0 (3) → 2 นัยสำคัญ → 0.144 → <strong>0.14</strong>' },
+    { q:'6.24 × 1.8 × 2.0', a:'22', exp:'1.8 (2) น้อยสุด → 2 นัยสำคัญ → 22.464 → <strong>22</strong>' },
+    { q:'150.0 ÷ 0.025', a:'6.0×10³', exp:'0.025 (2) น้อยสุด → 2 นัยสำคัญ → 6000 → <strong>6.0×10³</strong>' },
+    { q:'2.50×10³ × 4.0×10²', a:'1.0×10⁶', exp:'4.0 (2) น้อยสุด → 2 นัยสำคัญ → 1,000,000 → <strong>1.0×10⁶</strong>' },
+    { q:'8.800 ÷ 2.20', a:'4.00', exp:'8.800 (4) ÷ 2.20 (3) → 3 นัยสำคัญ → 4.000 → <strong>4.00</strong>' },
+    { q:'0.500 × 0.0040', a:'2.0×10⁻³', exp:'0.0040 (2) น้อยสุด → 2 นัยสำคัญ → 0.002 → <strong>2.0×10⁻³</strong>' },
+    { q:'(3.0 × 5.00) ÷ 2.5', a:'6.0', exp:'3.0 (2) น้อยสุด → 2 นัยสำคัญ → 6.0' },
+    { q:'6.0×10⁻² ÷ 3.00×10²', a:'2.0×10⁻⁴', exp:'6.0 (2) น้อยสุด → 2 นัยสำคัญ → 0.0002 → <strong>2.0×10⁻⁴</strong>' },
+  ],
+
+  // STAGE 4 — สถานการณ์การวัด V = IR
+  [
+    { q:'ไฟหน้ารถจักรยานไฟฟ้ามีความต้านทาน <b>24 Ω</b> วัดกระแสที่ไหลผ่านได้ <b>0.50 A</b><br>แรงดันคร่อมหลอดไฟเป็นกี่โวลต์ (V)?', a:'12 V',
+      exp:'V = IR = 0.50 × 24 = 12 → 0.50 (2 ตัว), 24 (2 ตัว) → ตอบ 2 นัยสำคัญ → <strong>12 V</strong>' },
+    { q:'ลวดนิโครมในเครื่องเป่าผมมีความต้านทาน <b>4.0 Ω</b> ต่อกับแหล่งจ่าย <b>12.0 V</b><br>กระแสที่ไหลผ่านลวดเป็นกี่แอมแปร์ (A)?', a:'3.0 A',
+      exp:'I = V/R = 12.0 ÷ 4.0 = 3 → 12.0 (3 ตัว), 4.0 (2 ตัว) → ตอบ 2 นัยสำคัญ → <strong>3.0 A</strong>' },
+    { q:'วัดมอเตอร์ของเล่นด้วยมัลติมิเตอร์ ได้แรงดัน <b>9.0 V</b> และกระแส <b>0.25 A</b><br>ความต้านทานของมอเตอร์เป็นกี่โอห์ม (Ω)?', a:'36 Ω',
+      exp:'R = V/I = 9.0 ÷ 0.25 = 36 → 9.0 (2 ตัว), 0.25 (2 ตัว) → ตอบ 2 นัยสำคัญ → <strong>36 Ω</strong>' },
+    { q:'ตัวต้านทาน <b>4.80 Ω</b> ในวงจรทดลอง มีกระแสไหลผ่าน <b>2.50 A</b><br>แรงดันคร่อมตัวต้านทานเป็นกี่โวลต์ (V)?', a:'12.0 V',
+      exp:'V = IR = 2.50 × 4.80 = 12 → ทั้งคู่ 3 ตัว → ตอบ 3 นัยสำคัญ → <strong>12.0 V</strong> (ต้องเติม .0)' },
+    { q:'หลอดไฟฉายมีความต้านทาน <b>1.5 Ω</b> ต่อกับแบตเตอรี่ <b>6.0 V</b><br>กระแสที่ไหลผ่านหลอดไฟเป็นกี่แอมแปร์ (A)?', a:'4.0 A',
+      exp:'I = V/R = 6.0 ÷ 1.5 = 4 → ทั้งคู่ 2 ตัว → ตอบ 2 นัยสำคัญ → <strong>4.0 A</strong>' },
+    { q:'ต่อถ่าน AA <b>1.5 V</b> เข้ากับตัวต้านทาน <b>10.0 Ω</b><br>กระแสในวงจรเป็นกี่แอมแปร์ (A)?', a:'0.15 A',
+      exp:'I = V/R = 1.5 ÷ 10.0 = 0.15 → 1.5 (2 ตัว), 10.0 (3 ตัว) → ตอบ 2 นัยสำคัญ → <strong>0.15 A</strong>' },
+    { q:'ลำโพงมีความต้านทาน <b>8.0 Ω</b> วัดกระแสได้ <b>0.125 A</b><br>แรงดันคร่อมลำโพงเป็นกี่โวลต์ (V)?', a:'1.0 V',
+      exp:'V = IR = 0.125 × 8.0 = 1 → 0.125 (3 ตัว), 8.0 (2 ตัว) → ตอบ 2 นัยสำคัญ → <strong>1.0 V</strong>' },
+    { q:'ตัวต้านทานที่ต่อกับหลอด LED มีแรงดันคร่อม <b>3.30 V</b> และกระแส <b>0.0150 A</b><br>ความต้านทานเป็นกี่โอห์ม (Ω)?', a:'2.20×10² Ω',
+      exp:'R = V/I = 3.30 ÷ 0.0150 = 220 → ทั้งคู่ 3 ตัว → ต้องแสดง 3 นัยสำคัญ → <strong>2.20×10² Ω</strong> (ถ้าเขียน 220 จะเหลือแค่ 2 ตัว)' },
+  ],
+];
+
+// ══════════════════════════════════════════
+//   STATE
+// ══════════════════════════════════════════
+let decks = DECKS.map(d => shuffle([...d]));
+let used = [[], [], [], []];
+let scores = [0, 0, 0, 0];
+let currentStage = 0;
+let currentCard = [null, null, null, null];
+
+// ══════════════════════════════════════════
+//   MODE (group / solo)
+// ══════════════════════════════════════════
+let gameMode = 'group';
+const STAGE_POINTS = [1, 1, 2, 3];
+const STAGE_NAMES = ['ด่าน 1','ด่าน 2','ด่าน 3','ด่าน 4'];
+let solo = null;
+function newSolo(name) {
+  return { name, pts: 0, correct: 0, answered: 0, streak: 0, best: 0,
+           stage: [0,1,2,3].map(() => ({ correct: 0, answered: 0, pts: 0 })), log: [], started: new Date() };
+}
+
+function openModeSelect() {
+  document.getElementById('modeOverlay').classList.remove('hidden');
+  if (solo) document.getElementById('soloNameInput').value = solo.name;
+}
+
+function startMode(mode) {
+  getCtx();
+  if (mode === 'solo') {
+    const inp = document.getElementById('soloNameInput');
+    const name = inp.value.trim();
+    if (!name) {
+      inp.focus();
+      inp.style.borderColor = '#ff6b6b';
+      inp.placeholder = 'กรุณาพิมพ์ชื่อก่อนเริ่มเล่น';
+      setTimeout(() => { inp.style.borderColor = ''; }, 1200);
+      return;
+    }
+    solo = newSolo(name);
+    setFeedbackName(name);
+  }
+  gameMode = mode;
+  document.body.classList.toggle('mode-group', mode === 'group');
+  document.body.classList.toggle('mode-solo', mode === 'solo');
+  document.getElementById('modeLabel').textContent = mode === 'solo' ? 'เล่นเดี่ยว' : 'เล่นเป็นกลุ่ม';
+  // fresh start for the new mode
+  scores = [0,0,0,0];
+  [0,1,2,3].forEach(i => { document.getElementById('pts'+i).textContent = 0; resetDeck(i); });
+  document.getElementById('winnerBanner').style.display = 'none';
+  renderSolo();
+  switchStage(0);
+  document.getElementById('modeOverlay').classList.add('hidden');
+}
+
+function renderSolo() {
+  if (!solo) return;
+  document.getElementById('soloName').textContent = solo.name;
+  document.getElementById('soloPts').textContent = solo.pts;
+  document.getElementById('soloAcc').textContent = solo.correct + '/' + solo.answered;
+  document.getElementById('soloPct').textContent =
+    (solo.answered ? Math.round(solo.correct * 100 / solo.answered) : 0) + '%';
+  document.getElementById('soloStreak').textContent = solo.streak;
+  document.getElementById('soloBest').textContent = 'สูงสุด ' + solo.best;
+}
+
+const TEACHER_EMAIL = 'born501@gmail.com';
+
+// ---- answer checking ----
+function normAns(str) {
+  const sup = {'⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9','⁻':'-','⁺':'+'};
+  let t = String(str).replace(/<[^>]*>/g, '');
+  t = t.replace(/[๐-๙]/g, c => String(c.charCodeAt(0) - 0x0E50));
+  t = t.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]/g, c => sup[c]);
+  t = t.replace(/[−–—]/g, '-').replace(/[×xX*·]/g, 'x').replace(/[\s,]/g, '');
+  return t;
+}
+function stripUnit(t) {
+  return t.replace(/(Ω|ohms?|โอห์ม|โวลต์|โวลท์|แอมแปร์|แอมป์|[VvAa])$/i, '');
+}
+// returns {value, sf} or null
+function parseNum(str) {
+  const t = stripUnit(normAns(str));
+  let m = t.match(/^([+-]?(?:\d+\.?\d*|\.\d+))(?:x10\^?\(?([+-]?\d+)\)?|[eE]\(?([+-]?\d+)\)?)?$/);
+  if (!m) return null;
+  const mant = m[1].replace(/^[+-]/, '');
+  const exp = parseInt(m[2] ?? m[3] ?? '0', 10);
+  let digits;
+  if (mant.includes('.')) digits = mant.replace('.', '').replace(/^0+/, '');
+  else digits = mant.replace(/^0+/, '').replace(/0+$/, '');
+  const sf = Math.max(digits.length, 1);
+  return { value: parseFloat(m[1]) * Math.pow(10, exp), sf };
+}
+function checkAnswer(stage, given, expected) {
+  if (stage === 0) {
+    const g = normAns(given).match(/\d+/), e = normAns(expected).match(/\d+/);
+    return !!(g && e && parseInt(g[0], 10) === parseInt(e[0], 10));
+  }
+  const g = parseNum(given), e = parseNum(expected);
+  if (!g || !e) return false;
+  const tol = Math.abs(e.value) * 1e-9 + 1e-15;
+  return Math.abs(g.value - e.value) <= tol && g.sf === e.sf;
+}
+
+function setAnswerBox(stage, enabled) {
+  const inp = document.getElementById('ansInput' + stage);
+  const btn = document.getElementById('ansBtn' + stage);
+  inp.disabled = !enabled; btn.disabled = !enabled;
+  inp.placeholder = enabled ? inp.dataset.ph : 'กดจั่วบัตรก่อน แล้วพิมพ์คำตอบที่นี่';
+  if (enabled) { inp.value = ''; document.getElementById('ansResult' + stage).textContent = ''; inp.focus(); }
+}
+
+function insertAns(stage, txt) {
+  const inp = document.getElementById('ansInput' + stage);
+  if (inp.disabled) return;
+  const a = inp.selectionStart ?? inp.value.length, b = inp.selectionEnd ?? inp.value.length;
+  inp.value = inp.value.slice(0, a) + txt + inp.value.slice(b);
+  inp.focus(); inp.setSelectionRange(a + txt.length, a + txt.length);
+}
+
+function recordAnswer(stage, card, given, ok, note) {
+  card.checked = true;
+  const st = solo.stage[stage];
+  solo.answered++; st.answered++;
+  if (ok) {
+    const p = STAGE_POINTS[stage];
+    solo.pts += p; st.pts += p; solo.correct++; st.correct++;
+    solo.streak++; solo.best = Math.max(solo.best, solo.streak);
+  } else solo.streak = 0;
+  solo.log.push({ stage, q: card.q, a: card.a, given, ok, note });
+  renderSolo();
+  const h = document.getElementById('hist' + stage).firstChild;
+  if (h) h.classList.add(ok ? 'h-ok' : 'h-no');
+}
+
+function submitAnswer(stage, timeUp = false) {
+  const card = currentCard[stage];
+  if (gameMode !== 'solo' || !solo || !card || card.checked) return;
+  const inp = document.getElementById('ansInput' + stage);
+  const given = inp.value.trim();
+  if (!given && !timeUp) { inp.focus(); inp.style.borderColor = '#ff6b6b'; setTimeout(() => inp.style.borderColor = '', 900); return; }
+  const ok = given ? checkAnswer(stage, given, card.a) : false;
+  recordAnswer(stage, card, given, ok, timeUp ? 'หมดเวลา' : '');
+  if (!timeUp) stopTimer(stage);
+  setAnswerBox(stage, false);
+  ok ? playScore() : playMinus();
+  const res = document.getElementById('ansResult' + stage);
+  const ans = card.a.replace(/<[^>]*>/g, '');
+  res.className = 'ans-result ' + (ok ? 'ok' : 'no');
+  res.innerHTML = ok
+    ? `✅ ถูกต้อง! คำตอบ <span class="mono">${escHtml(given)}</span> · +${STAGE_POINTS[stage]} คะแนน — กดจั่วบัตรใบต่อไปได้เลย`
+    : `❌ ${timeUp ? 'หมดเวลา! ' : ''}${given ? `คำตอบของคุณ <span class="mono">${escHtml(given)}</span> · ` : ''}เฉลยคือ <span class="mono">${escHtml(ans)}</span> — ดูคำอธิบายบนบัตร`;
+  const fc = document.getElementById('fc' + stage);
+  if (fc && !fc.classList.contains('flipped')) fc.classList.add('flipped');
+  if ([0,1,2,3].every(i => decks[i].length === 0 && (!currentCard[i] || currentCard[i].checked)))
+    setTimeout(openResults, 1500);
+}
+
+// ---- results & email ----
+function fmtDate(d) {
+  const p = n => String(n).padStart(2, '0');
+  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear() + 543} ${p(d.getHours())}:${p(d.getMinutes())} น.`;
+}
+function buildReport() {
+  const pct = solo.answered ? Math.round(solo.correct * 100 / solo.answered) : 0;
+  const lines = [
+    'ผลคะแนน SigFig Quest (เล่นเดี่ยว)',
+    'ผู้เล่น: ' + solo.name,
+    'เริ่มเล่น: ' + fmtDate(solo.started),
+    'ส่งผล: ' + fmtDate(new Date()),
+    '',
+    `คะแนนรวม: ${solo.pts} คะแนน`,
+    `ตอบถูก: ${solo.correct}/${solo.answered} ข้อ (${pct}%)`,
+    `ถูกติดกันสูงสุด: ${solo.best} ข้อ`,
+    '',
+    '--- รายด่าน ---'
+  ];
+  [0,1,2,3].forEach(i => {
+    const st = solo.stage[i];
+    lines.push(`${STAGE_NAMES[i]}: ถูก ${st.correct}/${st.answered} ข้อ (ทำไป ${st.answered}/${DECKS[i].length} ใบ) = ${st.pts} คะแนน`);
+  });
+  lines.push('', '--- รายละเอียดคำตอบ ---');
+  solo.log.forEach((r, k) => {
+    const q = r.q.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    lines.push(`${k + 1}. [${STAGE_NAMES[r.stage]}] ${q} | ตอบ: ${r.given || '-'}${r.note ? ' (' + r.note + ')' : ''} | ${r.ok ? '✓ ถูก' : '✗ ผิด (เฉลย ' + r.a.replace(/<[^>]*>/g, '') + ')'}`);
+  });
+  const fb = feedbackItems;
+  const comment = (document.getElementById('resultComment')?.value || '').trim();
+  lines.push('', '--- ข้อคิดเห็น / ข้อเสนอแนะ ---');
+  if (!fb.length && !comment) lines.push('(ไม่มี)');
+  fb.forEach(f => lines.push(`- [${f.time}] ${f.group}: ${f.text}`));
+  if (comment) lines.push('- (ตอนส่งคะแนน) ' + comment);
+  const content = lines.join('\n');
+  return content + '\n\n' + VERIFY_MARK + '\nรหัสตรวจสอบ: ' + reportCode(content) +
+    '\n(ห้ามแก้ไขข้อความด้านบน — ครูใช้รหัสนี้ตรวจว่าข้อมูลไม่ถูกเปลี่ยน)';
+}
+
+// ---- tamper check ----
+const VERIFY_MARK = '=== รหัสตรวจสอบ ===';
+const VERIFY_SALT = 'SFQ-CTC-2569-tharathep';
+function cyrb(str, seed) {
+  let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (h2 >>> 0).toString(16).padStart(8, '0') + (h1 >>> 0).toString(16).padStart(8, '0');
+}
+function reportCode(content) {
+  // ignore whitespace/line wrapping that email apps may change
+  const norm = content.normalize('NFC').replace(/\s+/g, '');
+  const h = cyrb(VERIFY_SALT + norm + VERIFY_SALT, 2569).toUpperCase().slice(0, 12);
+  return h.slice(0, 4) + '-' + h.slice(4, 8) + '-' + h.slice(8, 12);
+}
+function openVerify() {
+  document.getElementById('verifyInput').value = '';
+  document.getElementById('verifyResult').textContent = '';
+  document.getElementById('verifyOverlay').classList.remove('hidden');
+}
+function verifyReport() {
+  const raw = document.getElementById('verifyInput').value.replace(/\r/g, '');
+  const out = document.getElementById('verifyResult');
+  const start = raw.indexOf('ผลคะแนน SigFig Quest');
+  const mark = raw.indexOf(VERIFY_MARK);
+  const m = raw.slice(mark).match(/รหัสตรวจสอบ:\s*([0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4})/i);
+  if (start < 0 || mark < 0 || !m) {
+    out.className = 'verify-result warn';
+    out.textContent = '⚠️ ไม่พบข้อความผลคะแนนหรือรหัสตรวจสอบ — วางข้อความให้ครบตั้งแต่บรรทัดแรกจนถึงรหัสตรวจสอบ';
+    return;
+  }
+  const content = raw.slice(start, mark).replace(/^>\s?/gm, '');
+  const ok = reportCode(content) === m[1].toUpperCase();
+  const who = (content.match(/ผู้เล่น:\s*(.+)/) || [])[1] || '';
+  const pts = (content.match(/คะแนนรวม:\s*(.+)/) || [])[1] || '';
+  out.className = 'verify-result ' + (ok ? 'ok' : 'no');
+  out.textContent = ok
+    ? `✅ ข้อมูลถูกต้อง ไม่ถูกแก้ไข — ${who} · ${pts}`
+    : `❌ ข้อมูลไม่ตรงกับรหัสตรวจสอบ — ข้อความหรือคะแนนอาจถูกแก้ไขก่อนส่ง (${who})`;
+}
+function openResults() {
+  if (!solo) return;
+  const pct = solo.answered ? Math.round(solo.correct * 100 / solo.answered) : 0;
+  document.getElementById('resultSub').textContent =
+    `${solo.name} · ตอบถูก ${solo.correct}/${solo.answered} ข้อ (${pct}%)`;
+  let rows = '';
+  [0,1,2,3].forEach(i => {
+    const st = solo.stage[i];
+    rows += `<tr><td>${STAGE_NAMES[i]}</td><td>${st.correct}/${st.answered}</td><td>${st.pts}</td></tr>`;
+  });
+  rows += `<tr class="total"><td>รวม</td><td>${solo.correct}/${solo.answered}</td><td>${solo.pts}</td></tr>`;
+  document.getElementById('resultRows').innerHTML = rows;
+  document.getElementById('resultCopied').textContent = '';
+  refreshReport();
+  document.getElementById('resultOverlay').classList.remove('hidden');
+  playWinner();
+}
+function refreshReport() {
+  if (!solo) return;
+  const body = buildReport();
+  const subject = `SigFig Quest - ${solo.name} - ${solo.pts} คะแนน`;
+  document.getElementById('resultText').value = body;
+  document.getElementById('teacherEmailLabel').textContent = TEACHER_EMAIL;
+  document.getElementById('resultGmail').href = 'https://mail.google.com/mail/?view=cm&fs=1&to=' +
+    encodeURIComponent(TEACHER_EMAIL) + '&su=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  document.getElementById('resultMailto').href = 'mailto:' + TEACHER_EMAIL + '?subject=' +
+    encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+}
+function closeResults() { document.getElementById('resultOverlay').classList.add('hidden'); }
+async function copyResults() {
+  const ta = document.getElementById('resultText');
+  const msg = document.getElementById('resultCopied');
+  try { await navigator.clipboard.writeText(ta.value); msg.textContent = 'คัดลอกแล้ว — นำไปวางในอีเมลถึง ' + TEACHER_EMAIL; }
+  catch (e) {
+    ta.focus(); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e2) {}
+    msg.textContent = ok ? 'คัดลอกแล้ว — นำไปวางในอีเมลถึง ' + TEACHER_EMAIL : 'เลือกข้อความในกล่องด้านล่างไว้แล้ว กดคัดลอกเองได้เลย';
+  }
+}
+
+function soloSummaryHTML(stage) {
+  const st = solo.stage[stage];
+  const pct = st.answered ? Math.round(st.correct * 100 / st.answered) : 0;
+  return `<div class="solo-summary">
+    สรุปผล${STAGE_NAMES[stage]} ของ <strong>${escHtml(solo.name)}</strong><br>
+    ตอบถูก <strong>${st.correct}</strong> จาก ${st.answered} ใบ (${pct}%) · ได้ <strong>${st.pts}</strong> คะแนน<br>
+    คะแนนรวมทุกด่าน <strong>${solo.pts}</strong> คะแนน
+  </div>`;
+}
+
+function setFeedbackName(name) {
+  const sel = document.getElementById('feedbackGroup');
+  let opt = document.getElementById('soloFeedbackOpt');
+  if (!opt) {
+    opt = document.createElement('option');
+    opt.id = 'soloFeedbackOpt';
+    sel.insertBefore(opt, sel.options[1]);
+  }
+  opt.value = name; opt.textContent = name;
+  sel.value = name;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ══════════════════════════════════════════
+//   STAGE SWITCH
+// ══════════════════════════════════════════
+function switchStage(idx) {
+  currentStage = idx;
+  document.querySelectorAll('.stage-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+  document.querySelectorAll('.game-area').forEach((a,i) => a.classList.toggle('active', i===idx));
+  updateRemaining(idx);
+}
+
+// ══════════════════════════════════════════
+//   DRAW CARD
+// ══════════════════════════════════════════
+function drawCard(stage) {
+  getCtx(); // unlock audio on user tap
+  if (decks[stage].length === 0) {
+    if (gameMode === 'solo' && solo && currentCard[stage] && !currentCard[stage].checked)
+      recordAnswer(stage, currentCard[stage], '', false, 'ข้าม');
+    document.getElementById('cardWrap'+stage).innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🎉</div>
+        <h3>หมดบัตรแล้ว!</h3>
+        ${gameMode === 'solo' && solo ? soloSummaryHTML(stage) + '<button class="finish-btn" style="margin:14px 0 0" onclick="openResults()">🏁 จบเกม &amp; ส่งคะแนนให้ครู</button>' : ''}
+        <p style="color:#666; font-size:14px; margin-top:10px;">กดรีเซ็ตเพื่อเล่นรอบใหม่</p>
+      </div>`;
+    if (gameMode === 'solo') { setAnswerBox(stage, false); document.getElementById('ansResult'+stage).textContent=''; } else checkWinner();
+    return;
+  }
+
+  stopTimer(stage); // reset timer on new card
+  if (gameMode === 'solo' && solo && currentCard[stage] && !currentCard[stage].checked)
+    recordAnswer(stage, currentCard[stage], '', false, 'ข้าม');
+  playDraw();
+
+  const card = { ...decks[stage].pop() };
+  currentCard[stage] = card;
+  used[stage].push(card);
+
+  const stageClass = ['s1','s2','s3','s4'][stage];
+  const stageLabel = ['ด่าน 1 · นับนัยสำคัญ','ด่าน 2 · บวก–ลบ','ด่าน 3 · คูณ–หาร','ด่าน 4 · สถานการณ์ V = IR'][stage];
+
+  document.getElementById('cardWrap'+stage).innerHTML = `
+    <div class="flash-card ${stageClass}" id="fc${stage}" onclick="flipCard(${stage})">
+      <div class="card-front">
+        <span class="card-stage-tag">${stageLabel}</span>
+        <div class="card-question${stage === 3 ? ' scenario' : ''}">${card.q}</div>
+        <div class="card-hint">${gameMode === 'solo' ? 'พิมพ์คำตอบในช่องด้านล่าง 👇' : 'คิดคำตอบแล้วกดพลิกบัตร 👇'}</div>
+        <div class="card-flip-tip">TAP TO FLIP</div>
+      </div>
+      <div class="card-back">
+        <div class="answer-label">✅ เฉลย</div>
+        <div class="card-answer">${card.a}</div>
+        <div class="card-explanation">${card.exp}</div>
+      </div>
+    </div>`;
+
+  // show timer bar and auto-start
+  const bar = document.getElementById('timerBar'+stage);
+  bar.classList.add('running');
+  startTimer(stage);
+
+  updateRemaining(stage);
+  addToHistory(stage, card);
+  if (gameMode === 'solo') setAnswerBox(stage, true);
+}
+
+function flipCard(stage) {
+  const fc = document.getElementById('fc'+stage);
+  if (!fc) return;
+  if (gameMode === 'solo' && currentCard[stage] && !currentCard[stage].checked) {
+    document.getElementById('ansInput' + stage).focus();
+    return;
+  }
+  const wasFlipped = fc.classList.contains('flipped');
+  if (!wasFlipped) {
+    playFlip();
+    stopTimer(stage);
+  }
+  fc.classList.toggle('flipped');
+}
+
+// ══════════════════════════════════════════
+//   REMAINING
+// ══════════════════════════════════════════
+function updateRemaining(stage) {
+  const count = decks[stage].length;
+  document.getElementById('remCount'+stage).textContent = count;
+}
+
+// ══════════════════════════════════════════
+//   HISTORY
+// ══════════════════════════════════════════
+function addToHistory(stage, card) {
+  const hist = document.getElementById('hist'+stage);
+  const item = document.createElement('div');
+  item.className = 'history-item';
+  item.innerHTML = `
+    <span class="h-q">${card.q}</span>
+    <span class="h-a">${card.a}</span>`;
+  hist.insertBefore(item, hist.firstChild);
+}
+
+// ══════════════════════════════════════════
+//   SCORE
+// ══════════════════════════════════════════
+function addScore(team, delta) {
+  scores[team] = Math.max(0, scores[team] + delta);
+  document.getElementById('pts'+team).textContent = scores[team];
+  if (delta > 0) playScore(); else playMinus();
+  checkWinner();
+}
+
+function checkWinner() {
+  const maxScore = Math.max(...scores);
+  if (maxScore >= 20) {
+    const winner = ['กลุ่ม A','กลุ่ม B','กลุ่ม C','กลุ่ม D'][scores.indexOf(maxScore)];
+    document.getElementById('winnerName').textContent = winner + ' (คะแนน ' + maxScore + ')';
+    const banner = document.getElementById('winnerBanner');
+    if (banner.style.display !== 'block') {
+      banner.style.display = 'block';
+      playWinner();
+    }
+  }
+}
+
+// ══════════════════════════════════════════
+//   RESET
+// ══════════════════════════════════════════
+function resetDeck(stage) {
+  stopTimer(stage);
+  if (solo && gameMode === 'solo') {
+    // remove this stage's results from the solo totals so a replay starts clean
+    const st = solo.stage[stage];
+    solo.pts -= st.pts; solo.correct -= st.correct; solo.answered -= st.answered;
+    solo.stage[stage] = { correct: 0, answered: 0, pts: 0 };
+    solo.log = solo.log.filter(r => r.stage !== stage);
+    solo.streak = 0;
+    renderSolo();
+  }
+  currentCard[stage] = null;
+  setAnswerBox(stage, false);
+  document.getElementById('ansResult' + stage).textContent = '';
+  decks[stage] = shuffle([...DECKS[stage]]);
+  used[stage] = [];
+  document.getElementById('cardWrap'+stage).innerHTML = '';
+  document.getElementById('timerBar'+stage).classList.remove('running');
+  updateRemaining(stage);
+  document.getElementById('hist'+stage).innerHTML = '';
+}
+
+// ══════════════════════════════════════════
+//   INIT
+// ══════════════════════════════════════════
+[0,1,2,3].forEach(updateRemaining);
+
+// ══════════════════════════════════════════
+//   FEEDBACK SYSTEM
+// ══════════════════════════════════════════
+const feedbackItems = [];
+
+function submitFeedback() {
+  const groupEl = document.getElementById('feedbackGroup');
+  const inputEl = document.getElementById('feedbackInput');
+  const group = groupEl.value.trim();
+  const text = inputEl.value.trim();
+
+  if (!text) {
+    inputEl.focus();
+    inputEl.style.borderColor = '#ff6b6b';
+    setTimeout(() => { inputEl.style.borderColor = ''; }, 1000);
+    return;
+  }
+  if (!group) {
+    groupEl.style.borderColor = '#ff6b6b';
+    setTimeout(() => { groupEl.style.borderColor = ''; }, 1000);
+    groupEl.focus();
+    return;
+  }
+
+  const now = new Date();
+  const timeStr = now.getHours().toString().padStart(2,'0') + ':' +
+                  now.getMinutes().toString().padStart(2,'0');
+
+  feedbackItems.push({ group, text, time: timeStr });
+  renderFeedback();
+
+  inputEl.value = '';
+  inputEl.focus();
+
+  // brief sound cue
+  try {
+    const ctx = getCtx();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.setValueAtTime(880, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.12);
+    g.gain.setValueAtTime(0.25, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    o.start(); o.stop(ctx.currentTime + 0.25);
+  } catch(e) {}
+}
+
+function renderFeedback() {
+  const list = document.getElementById('feedbackList');
+  const empty = document.getElementById('feedbackEmpty');
+  const clearWrap = document.getElementById('feedbackClearWrap');
+
+  if (feedbackItems.length === 0) {
+    list.innerHTML = '';
+    list.appendChild(empty);
+    empty.style.display = '';
+    clearWrap.style.display = 'none';
+    return;
+  }
+
+  empty.style.display = 'none';
+  clearWrap.style.display = '';
+
+  // rebuild list (newest first)
+  list.innerHTML = '';
+  for (let i = feedbackItems.length - 1; i >= 0; i--) {
+    const f = feedbackItems[i];
+    const item = document.createElement('div');
+    item.className = 'feedback-item';
+    item.innerHTML = `
+      <div>
+        <span class="feedback-badge">${f.group}</span>
+      </div>
+      <div class="feedback-text">${escHtml(f.text)}</div>
+      <div class="feedback-time">${f.time}</div>
+    `;
+    list.appendChild(item);
+  }
+}
+
+function clearFeedback() {
+  if (!confirm('ล้างข้อเสนอแนะทั้งหมด?')) return;
+  feedbackItems.length = 0;
+  renderFeedback();
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ══════════════════════════════════════════
+//   INSTALL AS APP (PWA)
+// ══════════════════════════════════════════
+let deferredInstall = null;
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+  if (!isStandalone()) document.getElementById('installWrap').classList.add('show');
+});
+window.addEventListener('appinstalled', () => {
+  deferredInstall = null;
+  document.getElementById('installWrap').classList.remove('show');
+});
+async function installApp() {
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  try { await deferredInstall.userChoice; } catch (e) {}
+  deferredInstall = null;
+  document.getElementById('installWrap').classList.remove('show');
+}
+(function () {
+  const ua = navigator.userAgent;
+  const iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (iOS && !isStandalone() && location.protocol === 'https:') {
+    document.getElementById('installBtn').style.display = 'none';
+    document.getElementById('iosHint').style.display = '';
+    document.getElementById('installWrap').classList.add('show');
+  }
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+})();
+</script>
+</body>
+</html>

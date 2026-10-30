@@ -1,0 +1,17 @@
+{
+  "name": "SigFig Quest — เกมบัตรคำเลขนัยสำคัญ",
+  "short_name": "SigFig Quest",
+  "description": "เกมบัตรคำฝึกเลขนัยสำคัญ 4 ด่าน เล่นแบบกลุ่มหรือเดี่ยว",
+  "lang": "th",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1b1240",
+  "theme_color": "#1b1240",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
