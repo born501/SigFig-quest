@@ -1,9 +1,9 @@
 // SigFig Quest service worker — ทำให้ติดตั้งได้และเล่นแบบออฟไลน์ได้
-const CACHE = 'sigfig-quest-v1';
+const CACHE = 'sigfig-quest-v3';
 const SHELL = [
   './', './index.html', './manifest.webmanifest',
-  './icons/icon-192.png', './icons/icon-512.png', './icons/maskable-512.png',
-  './icons/apple-touch-icon.png', './icons/favicon-32.png'
+  './icon-192.png', './icon-512.png', './maskable-512.png',
+  './apple-touch-icon.png', './favicon-32.png'
 ];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

@@ -1,14 +1,22 @@
 <!DOCTYPE html>
+<!--
+  SigFig Quest — เกมบัตรคำเลขนัยสำคัญ
+  © 2569 (2026) ธราเทพ มณีแดง  สงวนลิขสิทธิ์ (All rights reserved)
+  ห้ามคัดลอก ดัดแปลง หรือเผยแพร่ต่อโดยไม่ได้รับอนุญาตเป็นลายลักษณ์อักษรจากเจ้าของผลงาน
+-->
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="author" content="ธราเทพ มณีแดง">
+<meta name="copyright" content="© 2569 ธราเทพ มณีแดง สงวนลิขสิทธิ์">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SigFig Quest — เกมบัตรคำเลขนัยสำคัญ</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#1b1240">
 <meta name="description" content="เกมบัตรคำฝึกเลขนัยสำคัญ 4 ด่าน เล่นแบบกลุ่มหรือเดี่ยว">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SigFig Quest">
@@ -1032,6 +1040,8 @@ body.mode-solo .flash-card, body.mode-solo .flash-card-wrapper { min-height: 340
 .install-btn:hover { background: rgba(255,255,255,0.28); }
 @keyframes pop2 { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 .install-hint { font-size: 13px; color: #fff; line-height: 1.7; background: rgba(0,0,0,0.25); border-radius: 12px; padding: 10px 14px; display: inline-block; }
+.copyright-note { text-align: center; font-size: 12px; color: #667788; margin: 14px 0 4px; line-height: 1.7; }
+#modeOverlay .copyright-note { color: rgba(255,255,255,0.65); margin-top: 14px; }
 </style>
 </head>
 <body class="mode-group">
@@ -1122,6 +1132,7 @@ body.mode-solo .flash-card, body.mode-solo .flash-card-wrapper { min-height: 340
       </div>
     </div>
     <div class="mode-foot">4 ด่าน · นับนัยสำคัญ → บวก–ลบ → คูณ–หาร → สถานการณ์</div>
+    <div class="copyright-note">© 2569 ธราเทพ มณีแดง · สงวนลิขสิทธิ์</div>
     <div class="install-wrap" id="installWrap">
       <button class="install-btn" id="installBtn" onclick="installApp()">📲 ติดตั้งเกมลงเครื่อง</button>
       <div class="install-hint" id="iosHint" style="display:none">
@@ -1477,6 +1488,8 @@ body.mode-solo .flash-card, body.mode-solo .flash-card-wrapper { min-height: 340
   </div>
 
   <button class="teacher-link" onclick="openVerify()">🔒 สำหรับครู: ตรวจสอบผลคะแนนที่นักเรียนส่งมา</button>
+
+  <div class="copyright-note">© 2569 ธราเทพ มณีแดง<br>สงวนลิขสิทธิ์ ห้ามคัดลอก ดัดแปลง หรือเผยแพร่ต่อโดยไม่ได้รับอนุญาต</div>
 
 </div><!-- /app -->
 
