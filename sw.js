@@ -1,5 +1,5 @@
 // SigFig Quest service worker — ทำให้ติดตั้งได้และเล่นแบบออฟไลน์ได้
-const CACHE = 'sigfig-quest-v3';
+const CACHE = 'sigfig-quest-v4';
 const SHELL = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './maskable-512.png',

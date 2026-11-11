@@ -868,6 +868,12 @@ body.mode-solo .flash-card, body.mode-solo .flash-card-wrapper { min-height: 340
   display: block; text-align: center; padding: 12px 8px; border-radius: 10px; font-family: inherit;
   font-size: 15px; font-weight: 800; cursor: pointer; text-decoration: none; border: 2px solid transparent;
 }
+.r-line {
+  grid-column: 1 / -1; background: #06C755; color: #fff; font-size: 17px !important;
+  display: flex !important; align-items: center; justify-content: center; gap: 8px;
+}
+.r-line:hover { filter: brightness(1.08); }
+.r-line svg { width: 26px; height: 26px; flex: none; }
 .r-gmail { background: var(--neon-yellow); color: #1a1a1a; }
 .r-mail { background: var(--neon-cyan); color: #1a1a1a; }
 .r-copy, .r-close { background: transparent; color: #ccc; border-color: #334 !important; }
@@ -1054,12 +1060,16 @@ body.mode-solo .flash-card, body.mode-solo .flash-card-wrapper { min-height: 340
       <thead><tr><th>ด่าน</th><th>ตอบถูก</th><th>คะแนน</th></tr></thead>
       <tbody id="resultRows"></tbody>
     </table>
-    <div class="result-note">กดปุ่มด้านล่างเพื่อส่งผลคะแนนไปที่อีเมลครู <strong id="teacherEmailLabel"></strong><br>
-      ระบบจะเปิดหน้าเขียนอีเมลที่กรอกข้อมูลไว้ให้แล้ว — <strong>กด "ส่ง" ในหน้านั้นอีกครั้ง</strong></div>
-    <div class="result-comment-label">💬 ข้อคิดเห็น / ข้อเสนอแนะถึงครู (ถ้ามี) — จะแนบไปในอีเมลด้วย</div>
+    <div class="result-note">ส่งผลคะแนนให้ครูทาง <strong style="color:#06C755">LINE</strong> หรืออีเมล <strong id="teacherEmailLabel"></strong><br>
+      ระบบจะเปิดแอปพร้อมข้อความผลคะแนน — <strong>เลือกแชตครู แล้วกด "ส่ง" อีกครั้ง</strong></div>
+    <div class="result-comment-label">💬 ข้อคิดเห็น / ข้อเสนอแนะถึงครู (ถ้ามี) — จะแนบไปกับผลคะแนนด้วย</div>
     <textarea class="result-comment" id="resultComment" maxlength="300"
       placeholder="เช่น ด่านไหนยาก ชอบส่วนไหน อยากให้ปรับอะไร" oninput="refreshReport()"></textarea>
     <div class="result-actions">
+      <a class="r-line" id="resultLine" target="_blank" rel="noopener" onclick="lineClicked()">
+        <span style="font-size:22px">💬</span>
+        ส่งคะแนนผ่าน LINE
+      </a>
       <a class="r-gmail" id="resultGmail" target="_blank" rel="noopener">📧 ส่งผ่าน Gmail</a>
       <a class="r-mail" id="resultMailto" target="_blank" rel="noopener">✉️ ส่งผ่านแอปอีเมล</a>
       <button class="r-copy" onclick="copyResults()">📋 คัดลอกผลคะแนน</button>
@@ -2024,7 +2034,7 @@ function fmtDate(d) {
   const p = n => String(n).padStart(2, '0');
   return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear() + 543} ${p(d.getHours())}:${p(d.getMinutes())} น.`;
 }
-function buildReport() {
+function buildReport(compact = false) {
   const pct = solo.answered ? Math.round(solo.correct * 100 / solo.answered) : 0;
   const lines = [
     'ผลคะแนน SigFig Quest (เล่นเดี่ยว)',
@@ -2042,10 +2052,11 @@ function buildReport() {
     const st = solo.stage[i];
     lines.push(`${STAGE_NAMES[i]}: ถูก ${st.correct}/${st.answered} ข้อ (ทำไป ${st.answered}/${DECKS[i].length} ใบ) = ${st.pts} คะแนน`);
   });
-  lines.push('', '--- รายละเอียดคำตอบ ---');
-  solo.log.forEach((r, k) => {
-    const q = r.q.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-    lines.push(`${k + 1}. [${STAGE_NAMES[r.stage]}] ${q} | ตอบ: ${r.given || '-'}${r.note ? ' (' + r.note + ')' : ''} | ${r.ok ? '✓ ถูก' : '✗ ผิด (เฉลย ' + r.a.replace(/<[^>]*>/g, '') + ')'}`);
+  if (compact === 'summary') lines.push('', '(ข้อความฉบับย่อสำหรับ LINE — รายละเอียดคำตอบรายข้อดูได้จากการส่งทางอีเมล)');
+  else lines.push('', '--- รายละเอียดคำตอบ ---');
+  if (compact !== 'summary') solo.log.forEach((r, k) => {
+    const q = compact ? '' : ' ' + r.q.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() + ' |';
+    lines.push(`${k + 1}. [${STAGE_NAMES[r.stage]}]${q} ตอบ: ${r.given || '-'}${r.note ? ' (' + r.note + ')' : ''} | ${r.ok ? '✓ ถูก' : '✗ ผิด (เฉลย ' + r.a.replace(/<[^>]*>/g, '') + ')'}`);
   });
   const fb = feedbackItems;
   const comment = (document.getElementById('resultComment')?.value || '').trim();
@@ -2129,16 +2140,30 @@ function refreshReport() {
     encodeURIComponent(TEACHER_EMAIL) + '&su=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
   document.getElementById('resultMailto').href = 'mailto:' + TEACHER_EMAIL + '?subject=' +
     encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  // LINE รับข้อความได้ไม่เกิน 5,000 ตัวอักษร — ถ้ายาวเกินใช้ฉบับย่อ (ไม่มีตัวโจทย์ แต่มีรหัสตรวจสอบของตัวเอง)
+  // ลิงก์ที่ยาวเกินไปอาจเปิดไม่ได้ จึงเลือกฉบับที่สั้นพอ: เต็ม → ไม่มีตัวโจทย์ → สรุปเฉพาะคะแนน
+  const MAXURL = 7000;
+  lineText = body;
+  if (encodeURIComponent(lineText).length > MAXURL) lineText = buildReport(true);
+  if (encodeURIComponent(lineText).length > MAXURL) lineText = buildReport('summary');
+  document.getElementById('resultLine').href = 'https://line.me/R/share?text=' + encodeURIComponent(lineText);
+}
+let lineText = '';
+function lineClicked() {
+  // สำรองข้อความไว้ในคลิปบอร์ด เผื่อ LINE เปิดแล้วไม่มีข้อความ
+  try { navigator.clipboard.writeText(lineText).catch(() => {}); } catch (e) {}
+  document.getElementById('resultCopied').textContent =
+    'กำลังเปิด LINE… เลือกแชตครูแล้วกดส่ง (ถ้าข้อความไม่ขึ้น ให้กดค้างในช่องพิมพ์แล้วเลือก "วาง")';
 }
 function closeResults() { document.getElementById('resultOverlay').classList.add('hidden'); }
 async function copyResults() {
   const ta = document.getElementById('resultText');
   const msg = document.getElementById('resultCopied');
-  try { await navigator.clipboard.writeText(ta.value); msg.textContent = 'คัดลอกแล้ว — นำไปวางในอีเมลถึง ' + TEACHER_EMAIL; }
+  try { await navigator.clipboard.writeText(ta.value); msg.textContent = 'คัดลอกแล้ว — นำไปวางในแชต LINE หรืออีเมลถึงครู'; }
   catch (e) {
     ta.focus(); ta.select();
     let ok = false; try { ok = document.execCommand('copy'); } catch (e2) {}
-    msg.textContent = ok ? 'คัดลอกแล้ว — นำไปวางในอีเมลถึง ' + TEACHER_EMAIL : 'เลือกข้อความในกล่องด้านล่างไว้แล้ว กดคัดลอกเองได้เลย';
+    msg.textContent = ok ? 'คัดลอกแล้ว — นำไปวางในแชต LINE หรืออีเมลถึงครู' : 'เลือกข้อความในกล่องด้านล่างไว้แล้ว กดคัดลอกเองได้เลย';
   }
 }
 
