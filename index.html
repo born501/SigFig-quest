@@ -1048,6 +1048,146 @@ body.mode-solo .flash-card, body.mode-solo .flash-card-wrapper { min-height: 340
 .install-hint { font-size: 13px; color: #fff; line-height: 1.7; background: rgba(0,0,0,0.25); border-radius: 12px; padding: 10px 14px; display: inline-block; }
 .copyright-note { text-align: center; font-size: 12px; color: #667788; margin: 14px 0 4px; line-height: 1.7; }
 #modeOverlay .copyright-note { color: rgba(255,255,255,0.65); margin-top: 14px; }
+
+/* ════════ v5: PORTRAIT CARD ════════ */
+.flash-card-wrapper { min-height: 0; margin: 0 auto 22px; }
+#cardWrap3, #cardWrap3 .flash-card { min-height: 0; }
+.card-controls { justify-content: center; max-width: 560px; margin-left: auto; margin-right: auto; }
+.flash-card {
+  width: 100%; max-width: 380px; min-height: 0; aspect-ratio: 5 / 7; margin: 0 auto; padding: 0;
+  container-type: inline-size; border-radius: 22px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.06);
+}
+.flash-card .card-front, .flash-card .card-back {
+  border-radius: 22px; padding: 13cqw 9cqw; align-items: center; text-align: center; overflow: hidden;
+}
+.flash-card .card-front::before, .flash-card .card-back::before {
+  content: ''; position: absolute; inset: 3.2cqw; border-radius: 16px; pointer-events: none;
+  border: 2px dashed rgba(0,0,0,0.13);
+}
+.flash-card .card-back::before { border-color: rgba(255,255,255,0.12); }
+.card-corner {
+  position: absolute; display: flex; flex-direction: column; align-items: center; line-height: 1;
+  font-family: 'Boogaloo', 'Sarabun', cursive; font-size: 8.5cqw; font-weight: 800;
+}
+.card-corner small { font-size: 5.2cqw; margin-top: 2px; }
+.card-corner.tl { top: 5cqw; left: 6cqw; }
+.card-corner.br { bottom: 5cqw; right: 6cqw; transform: rotate(180deg); }
+.s1 .card-front .card-corner { color: var(--stage1); }
+.s2 .card-front .card-corner { color: #c98a00; }
+.s3 .card-front .card-corner { color: #049a73; }
+.s4 .card-front .card-corner { color: var(--stage3x); }
+.card-back .card-corner { color: var(--neon-cyan); opacity: .7; }
+.card-stage-tag { align-self: center; font-size: 3.4cqw; margin-bottom: 6cqw; padding: 1.2cqw 3.4cqw; letter-spacing: 1px; }
+.card-question { font-size: clamp(24px, 10.5cqw, 44px); line-height: 1.3; margin-bottom: 5cqw; overflow-wrap: anywhere; }
+.card-question.scenario { font-size: clamp(16px, 5.3cqw, 22px); line-height: 1.65; text-align: left; }
+.card-hint { font-size: clamp(14px, 4.2cqw, 17px); }
+.card-flip-tip { font-size: clamp(11px, 3.2cqw, 13px); margin-top: 3cqw; }
+.answer-label { font-size: clamp(12px, 3.6cqw, 15px); letter-spacing: 2px; }
+.card-answer { font-size: clamp(26px, 11cqw, 46px); margin-bottom: 4cqw; overflow-wrap: anywhere; }
+.card-explanation { font-size: clamp(14px, 4.4cqw, 18px); line-height: 1.75; text-align: left; }
+.empty-state { max-width: 520px; margin: 0 auto; }
+@media (min-width: 900px) { .flash-card { max-width: 430px; } }
+
+/* ════════ v5: BIGGER TEXT ════════ */
+.game-subtitle { font-size: 16px; }
+.stage-btn .stage-label { font-size: 12px; }
+.stage-btn .stage-name { font-size: 17px; }
+.stage-info h3 { font-size: 22px; }
+.stage-info .rule-text { font-size: 16px; line-height: 1.8; }
+.how-to-play { font-size: 16px; line-height: 1.85; }
+.how-to-play h4 { font-size: 13px; }
+.card-remaining { font-size: 15px; }
+.btn-draw { font-size: 24px; }
+.history-label { font-size: 12px; }
+.history-item { font-size: 15px; }
+.history-item .h-team { font-size: 12px; }
+.answer-box { max-width: 560px; margin-left: auto; margin-right: auto; }
+.answer-row input { font-size: 24px; padding: 14px 16px; }
+.ans-submit { font-size: 18px; }
+.ans-tools { font-size: 14px; }
+.ans-tools button { font-size: 16px; padding: 7px 12px; }
+.ans-result { font-size: 18px; }
+.solo-stat .s-label { font-size: 13px; }
+.solo-stat .s-sub { font-size: 14px; }
+.solo-stat.name .s-value { font-size: 24px; }
+.finish-btn { font-size: 18px; }
+#modeOverlay .m-desc { font-size: 16px; }
+.m-tags span { font-size: 13px; }
+.mode-card input { font-size: 17px !important; }
+.result-table { font-size: 16px; }
+.result-table th { font-size: 13px; }
+.result-note { font-size: 15px; }
+.result-comment-label { font-size: 15px; }
+.result-actions a, .result-actions button { font-size: 17px; }
+.feedback-section, .feedback-input, .feedback-select, .feedback-submit { font-size: 16px; }
+@media (max-width: 600px) {
+  .card-question { font-size: clamp(24px, 10.5cqw, 44px); }
+  .card-answer { font-size: clamp(26px, 11cqw, 46px); }
+  .card-question.scenario { font-size: clamp(16px, 5.3cqw, 22px); }
+  .stage-info .rule-text, .how-to-play { font-size: 15px; }
+  .answer-row input { font-size: 22px; }
+}
+
+/* ════════ v5: TOP LEADER ════════ */
+.solo-actions { display: grid; grid-template-columns: 1fr 1.6fr; gap: 10px; margin: -12px 0 24px; }
+.solo-actions .finish-btn { margin: 0; }
+.top-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border-radius: 12px;
+  border: none; cursor: pointer; font-family: inherit; font-size: 18px; font-weight: 800; color: #1a1a1a;
+  background: linear-gradient(135deg, #ffe066, #ffb347); box-shadow: 0 6px 18px rgba(255,179,71,0.35);
+}
+.top-btn:hover { filter: brightness(1.06); }
+.solo-stat.rank .s-value { color: #ffb347; }
+.rank-hint {
+  grid-column: 1 / -1; text-align: center; font-size: 15px; font-weight: 700; color: #ffd166;
+  background: rgba(255,209,102,0.08); border: 1px dashed rgba(255,209,102,0.4); border-radius: 10px; padding: 8px 12px;
+}
+.rank-hint:empty { display: none; }
+.solo-board { grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr; }
+@media (max-width: 600px) { .solo-board { grid-template-columns: 1fr 1fr; } .solo-actions { grid-template-columns: 1fr; } }
+
+.mode-top-btn {
+  margin-top: 18px; display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 999px;
+  border: 2px solid #ffe066; background: rgba(255,224,102,0.15); color: #ffe066; font-family: inherit;
+  font-size: 17px; font-weight: 800; cursor: pointer;
+}
+.mode-top-btn:hover { background: rgba(255,224,102,0.25); }
+.mode-card .room-input { margin-top: 0; }
+
+.lb-box { max-width: 560px; border-color: #ffb347; }
+.lb-box h2 { color: #ffd166; }
+.lb-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
+.lb-tabs button {
+  padding: 8px 16px; border-radius: 999px; border: 2px solid #334; background: transparent; color: #aab;
+  font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.lb-tabs button.on { border-color: #ffd166; color: #1a1a1a; background: #ffd166; }
+.lb-list { display: flex; flex-direction: column; gap: 6px; max-height: 52vh; overflow-y: auto; }
+.lb-row {
+  display: grid; grid-template-columns: 46px 1fr auto; align-items: center; gap: 10px;
+  background: #0f1923; border: 1px solid #22303f; border-radius: 12px; padding: 10px 14px;
+}
+.lb-row .lb-rank { font-family: 'Boogaloo', 'Sarabun', cursive; font-size: 24px; text-align: center; color: #8899aa; }
+.lb-row .lb-name { font-size: 17px; font-weight: 800; color: #fff; overflow-wrap: anywhere; line-height: 1.4; }
+.lb-row .lb-sub { font-size: 13px; color: #8899aa; font-weight: 500; }
+.lb-row .lb-pts { font-family: 'Boogaloo', 'Sarabun', cursive; font-size: 28px; color: #ffd166; text-align: right; line-height: 1; }
+.lb-row .lb-pts small { display: block; font-family: 'Sarabun', sans-serif; font-size: 12px; color: #8899aa; }
+.lb-row.top1 { background: linear-gradient(90deg, rgba(255,215,0,0.22), #0f1923 70%); border-color: rgba(255,215,0,0.6); }
+.lb-row.top2 { background: linear-gradient(90deg, rgba(192,192,192,0.2), #0f1923 70%); border-color: rgba(192,192,192,0.5); }
+.lb-row.top3 { background: linear-gradient(90deg, rgba(205,127,50,0.22), #0f1923 70%); border-color: rgba(205,127,50,0.55); }
+.lb-row.top1 .lb-rank, .lb-row.top2 .lb-rank, .lb-row.top3 .lb-rank { font-size: 30px; }
+.lb-row.me { outline: 3px solid var(--neon-cyan); outline-offset: -1px; }
+.lb-empty { text-align: center; color: #8899aa; padding: 26px 10px; font-size: 16px; }
+.lb-note { text-align: center; font-size: 13px; color: #8899aa; margin-top: 10px; line-height: 1.6; }
+.lb-myrank { text-align: center; font-size: 17px; font-weight: 800; color: var(--neon-cyan); margin: 0 0 12px; }
+.lb-myrank:empty { display: none; }
+.result-rank {
+  text-align: center; font-size: 19px; font-weight: 800; color: #ffd166; margin: -6px 0 14px;
+  background: rgba(255,209,102,0.1); border-radius: 12px; padding: 10px;
+}
+.result-rank:empty { display: none; }
+.result-rank button { margin-left: 8px; background: none; border: none; color: var(--neon-cyan); font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: underline; }
 </style>
 </head>
 <body class="mode-group">
@@ -1056,6 +1196,7 @@ body.mode-solo .flash-card, body.mode-solo .flash-card-wrapper { min-height: 340
   <div class="result-box">
     <h2>🏁 สรุปผลคะแนน</h2>
     <div class="r-sub" id="resultSub"></div>
+    <div class="result-rank" id="resultRank"></div>
     <table class="result-table">
       <thead><tr><th>ด่าน</th><th>ตอบถูก</th><th>คะแนน</th></tr></thead>
       <tbody id="resultRows"></tbody>
@@ -1091,6 +1232,22 @@ body.mode-solo .flash-card, body.mode-solo .flash-card-wrapper { min-height: 340
     <div class="result-actions" style="margin-top:12px">
       <button class="r-mail" onclick="verifyReport()">🔍 ตรวจสอบ</button>
       <button class="r-close" onclick="document.getElementById('verifyOverlay').classList.add('hidden')">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEADERBOARD MODAL -->
+<div class="mode-overlay hidden" id="lbOverlay" onclick="if(event.target===this) closeLeaderboard()">
+  <div class="result-box lb-box">
+    <h2>🏆 TOP 10 นักล่าเลขนัยสำคัญ</h2>
+    <div class="r-sub" id="lbSub">เรียงตามคะแนนสูงสุดของแต่ละคน</div>
+    <div class="lb-myrank" id="lbMyRank"></div>
+    <div class="lb-tabs" id="lbTabs"></div>
+    <div class="lb-list" id="lbList"></div>
+    <div class="lb-note" id="lbNote"></div>
+    <div class="result-actions" style="margin-top:12px">
+      <button class="r-mail" onclick="loadLeaderboard(true)">🔄 อัปเดตอันดับ</button>
+      <button class="r-close" onclick="closeLeaderboard()">✖ ปิด</button>
     </div>
   </div>
 </div>
@@ -1135,12 +1292,15 @@ body.mode-solo .flash-card, body.mode-solo .flash-card-wrapper { min-height: 340
         </span>
         <span class="m-title">เล่นแบบเดี่ยว</span>
         <span class="m-desc">ท้าทายตัวเองทีละคน พิมพ์คำตอบ<br>ระบบตรวจทันที จบแล้วส่งคะแนนถึงครู</span>
-        <span class="m-tags"><span>⌨️ พิมพ์ตอบ</span><span>⚡ ตรวจทันที</span><span>📧 ส่งครู</span></span>
+        <span class="m-tags"><span>⌨️ พิมพ์ตอบ</span><span>⚡ ตรวจทันที</span><span>🏆 ชิงอันดับ TOP</span></span>
         <input type="text" id="soloNameInput" maxlength="40" placeholder="✏️ พิมพ์ชื่อ-เลขที่ของผู้เล่น"
+          onkeydown="if(event.key==='Enter') startMode('solo')">
+        <input type="text" id="soloRoomInput" class="room-input" maxlength="20" placeholder="🏫 ห้อง เช่น ชฟ.2/1 (ไม่บังคับ)"
           onkeydown="if(event.key==='Enter') startMode('solo')">
         <button class="mode-go" onclick="startMode('solo')">🎯 เริ่มเล่นแบบเดี่ยว</button>
       </div>
     </div>
+    <button class="mode-top-btn" onclick="openLeaderboard()">🏆 ดูอันดับ TOP 10</button>
     <div class="mode-foot">4 ด่าน · นับนัยสำคัญ → บวก–ลบ → คูณ–หาร → สถานการณ์</div>
     <div class="copyright-note">© 2569 ธราเทพ มณีแดง · สงวนลิขสิทธิ์</div>
     <div class="install-wrap" id="installWrap">
@@ -1174,8 +1334,13 @@ body.mode-solo .flash-card, body.mode-solo .flash-card-wrapper { min-height: 340
     <div class="solo-stat pts"><div class="s-label">คะแนน</div><div class="s-value" id="soloPts">0</div></div>
     <div class="solo-stat acc"><div class="s-label">ตอบถูก</div><div class="s-value" id="soloAcc">0/0</div><div class="s-sub" id="soloPct">0%</div></div>
     <div class="solo-stat streak"><div class="s-label">ถูกติดกัน</div><div class="s-value" id="soloStreak">0</div><div class="s-sub" id="soloBest">สูงสุด 0</div></div>
+    <div class="solo-stat rank"><div class="s-label">อันดับ</div><div class="s-value" id="soloRank">-</div><div class="s-sub" id="soloRankOf">กำลังโหลด…</div></div>
+    <div class="rank-hint" id="rankHint"></div>
   </div>
-  <button class="finish-btn solo-only" onclick="openResults()">🏁 จบเกม &amp; ส่งคะแนนให้ครู</button>
+  <div class="solo-actions solo-only">
+    <button class="top-btn" onclick="openLeaderboard()">🏆 TOP 10</button>
+    <button class="finish-btn" onclick="openResults()">🏁 จบเกม &amp; ส่งคะแนนให้ครู</button>
+  </div>
 
   <div class="scoreboard group-only" id="scoreboard">
     <div class="score-card t1" id="sc0">
@@ -1450,7 +1615,7 @@ body.mode-solo .flash-card, body.mode-solo .flash-card-wrapper { min-height: 340
     <div class="answer-box solo-only" id="ansBox3">
       <div class="answer-row">
         <input type="text" id="ansInput3" inputmode="text" autocomplete="off" disabled
-          placeholder="กดจั่วบัตรก่อน แล้วพิมพ์คำตอบที่นี่" data-ph="ตัวเลขในหน่วยที่โจทย์ถาม เช่น 12.0"
+          placeholder="กดจั่วบัตรก่อน แล้วพิมพ์คำตอบที่นี่" data-ph="ตัวเลข เช่น 12.0"
           onkeydown="if(event.key==='Enter') submitAnswer(3)">
         <button class="ans-submit" id="ansBtn3" onclick="submitAnswer(3)" disabled>ส่งคำตอบ</button>
       </div>
@@ -1888,14 +2053,17 @@ let gameMode = 'group';
 const STAGE_POINTS = [1, 1, 2, 3];
 const STAGE_NAMES = ['ด่าน 1','ด่าน 2','ด่าน 3','ด่าน 4'];
 let solo = null;
-function newSolo(name) {
-  return { name, pts: 0, correct: 0, answered: 0, streak: 0, best: 0,
+function newSolo(name, room = '') {
+  return { name, room, sid: Date.now().toString(36) + Math.random().toString(36).slice(2, 8), pts: 0, correct: 0, answered: 0, streak: 0, best: 0,
            stage: [0,1,2,3].map(() => ({ correct: 0, answered: 0, pts: 0 })), log: [], started: new Date() };
 }
 
 function openModeSelect() {
   document.getElementById('modeOverlay').classList.remove('hidden');
-  if (solo) document.getElementById('soloNameInput').value = solo.name;
+  if (solo) {
+    document.getElementById('soloNameInput').value = solo.name;
+    document.getElementById('soloRoomInput').value = solo.room || '';
+  }
 }
 
 function startMode(mode) {
@@ -1910,8 +2078,11 @@ function startMode(mode) {
       setTimeout(() => { inp.style.borderColor = ''; }, 1200);
       return;
     }
-    solo = newSolo(name);
+    const room = document.getElementById('soloRoomInput').value.trim();
+    solo = newSolo(name, room);
+    try { localStorage.setItem('sfq_player', JSON.stringify({ name, room })); } catch (e) {}
     setFeedbackName(name);
+    loadLeaderboard();
   }
   gameMode = mode;
   document.body.classList.toggle('mode-group', mode === 'group');
@@ -1928,6 +2099,7 @@ function startMode(mode) {
 
 function renderSolo() {
   if (!solo) return;
+  updateLiveRank();
   document.getElementById('soloName').textContent = solo.name;
   document.getElementById('soloPts').textContent = solo.pts;
   document.getElementById('soloAcc').textContent = solo.correct + '/' + solo.answered;
@@ -2038,7 +2210,7 @@ function buildReport(compact = false) {
   const pct = solo.answered ? Math.round(solo.correct * 100 / solo.answered) : 0;
   const lines = [
     'ผลคะแนน SigFig Quest (เล่นเดี่ยว)',
-    'ผู้เล่น: ' + solo.name,
+    'ผู้เล่น: ' + solo.name + (solo.room ? '  ห้อง: ' + solo.room : ''),
     'เริ่มเล่น: ' + fmtDate(solo.started),
     'ส่งผล: ' + fmtDate(new Date()),
     '',
@@ -2127,6 +2299,8 @@ function openResults() {
   document.getElementById('resultRows').innerHTML = rows;
   document.getElementById('resultCopied').textContent = '';
   refreshReport();
+  submitScore();
+  showResultRank();
   document.getElementById('resultOverlay').classList.remove('hidden');
   playWinner();
 }
@@ -2236,17 +2410,20 @@ function drawCard(stage) {
   used[stage].push(card);
 
   const stageClass = ['s1','s2','s3','s4'][stage];
-  const stageLabel = ['ด่าน 1 · นับนัยสำคัญ','ด่าน 2 · บวก–ลบ','ด่าน 3 · คูณ–หาร','ด่าน 4 · สถานการณ์ V = IR'][stage];
+  const stageLabel = ['ด่าน 1 · นับนัยสำคัญ','ด่าน 2 · บวก–ลบ','ด่าน 3 · คูณ–หาร','ด่าน 4 · สถานการณ์'][stage];
+  const corner = `<span class="card-corner tl">${stage + 1}<small>${['🔢','➕','✖️','⚡'][stage]}</small></span><span class="card-corner br">${stage + 1}<small>${['🔢','➕','✖️','⚡'][stage]}</small></span>`;
 
   document.getElementById('cardWrap'+stage).innerHTML = `
     <div class="flash-card ${stageClass}" id="fc${stage}" onclick="flipCard(${stage})">
       <div class="card-front">
+        ${corner}
         <span class="card-stage-tag">${stageLabel}</span>
         <div class="card-question${stage === 3 ? ' scenario' : ''}">${card.q}</div>
         <div class="card-hint">${gameMode === 'solo' ? 'พิมพ์คำตอบในช่องด้านล่าง 👇' : 'คิดคำตอบแล้วกดพลิกบัตร 👇'}</div>
         <div class="card-flip-tip">TAP TO FLIP</div>
       </div>
       <div class="card-back">
+        ${corner}
         <div class="answer-label">✅ เฉลย</div>
         <div class="card-answer">${card.a}</div>
         <div class="card-explanation">${card.exp}</div>
@@ -2475,6 +2652,207 @@ async function installApp() {
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
   }
+})();
+
+// ══════════════════════════════════════════
+//   TOP LEADER (อันดับคะแนน)
+// ══════════════════════════════════════════
+// ใส่ URL ของ Google Apps Script Web App ที่นี่ เพื่อรวมอันดับจากทุกเครื่อง
+// ถ้าเว้นว่าง จะแสดงอันดับเฉพาะในเครื่องนี้
+const LEADERBOARD_URL = '';
+const MAX_POINTS = 66;
+let lbRows = [];            // best score per player
+let lbSource = 'local';     // 'online' | 'local'
+let lbFilter = 'all';
+let lbLoading = false;
+
+function lbKey(r) { return (String(r.name || '').trim().toLowerCase()) + '|' + (String(r.room || '').trim().toLowerCase()); }
+function lbAcc(r) { return r.answered ? r.correct / r.answered : 0; }
+function lbCmp(a, b) { return (b.pts - a.pts) || (lbAcc(b) - lbAcc(a)) || (b.best - a.best) || ((a.t || 0) - (b.t || 0)); }
+function lbBestPerPlayer(rows) {
+  const m = new Map();
+  rows.forEach(r => { const k = lbKey(r); const o = m.get(k); if (!o || lbCmp(r, o) < 0) m.set(k, r); });
+  return [...m.values()].sort(lbCmp);
+}
+function localScores() { try { return JSON.parse(localStorage.getItem('sfq_scores') || '[]'); } catch (e) { return []; } }
+function saveLocalScore(entry) {
+  try {
+    const a = localScores().filter(x => x.sid !== entry.sid);
+    a.push(entry);
+    localStorage.setItem('sfq_scores', JSON.stringify(a.slice(-500)));
+  } catch (e) {}
+}
+function myEntry() {
+  if (!solo) return null;
+  return { sid: solo.sid, name: solo.name, room: solo.room || '', pts: solo.pts, correct: solo.correct,
+           answered: solo.answered, best: solo.best, t: Date.now(),
+           s: solo.stage.map(x => x.pts) };
+}
+// rows to rank against = everyone else + me (current session)
+function lbWithMe() {
+  const me = myEntry();
+  const rows = lbRows.slice();
+  if (me && me.answered > 0) rows.push(me);
+  return lbBestPerPlayer(rows);
+}
+
+async function loadLeaderboard(manual = false) {
+  if (lbLoading) return;
+  lbLoading = true;
+  if (manual) document.getElementById('lbNote').textContent = 'กำลังอัปเดต…';
+  let online = null;
+  if (LEADERBOARD_URL) {
+    await flushPendingScores();
+    try {
+      const r = await fetch(LEADERBOARD_URL + '?action=top&t=' + Date.now(), { cache: 'no-store' });
+      const j = await r.json();
+      if (j && Array.isArray(j.rows)) online = j.rows.map(x => ({ ...x, pts: +x.pts || 0, correct: +x.correct || 0, answered: +x.answered || 0, best: +x.best || 0, t: +x.t || 0 }));
+    } catch (e) { online = null; }
+  }
+  if (online) { lbRows = lbBestPerPlayer(online); lbSource = 'online'; }
+  else { lbRows = lbBestPerPlayer(localScores()); lbSource = 'local'; }
+  lbLoading = false;
+  updateLiveRank();
+  if (!document.getElementById('lbOverlay').classList.contains('hidden')) renderLeaderboard();
+}
+
+function rankInfo(rows) {
+  const me = myEntry();
+  if (!me) return null;
+  const k = lbKey(me);
+  const others = rows.filter(r => lbKey(r) !== k);
+  const mine = rows.find(r => lbKey(r) === k);
+  const ref = mine && lbCmp(mine, me) < 0 ? mine : me;   // ใช้สถิติดีที่สุดของผู้เล่น
+  const ahead = others.filter(o => lbCmp(o, ref) < 0);
+  return { rank: ahead.length + 1, total: others.length + 1, next: ahead.length ? ahead[ahead.length - 1] : null, ref };
+}
+
+function updateLiveRank() {
+  if (!solo) return;
+  const el = document.getElementById('soloRank'); if (!el) return;
+  const roomRows = solo.room ? lbWithMe().filter(r => (r.room || '').trim().toLowerCase() === solo.room.trim().toLowerCase()) : lbWithMe();
+  const info = rankInfo(roomRows);
+  const hint = document.getElementById('rankHint');
+  if (!info || solo.answered === 0) {
+    el.textContent = '-';
+    document.getElementById('soloRankOf').textContent = lbRows.length ? `ผู้เล่น ${lbRows.length} คน` : 'ยังไม่มีอันดับ';
+    hint.textContent = lbRows.length ? `🏆 อันดับ 1 ตอนนี้: ${lbRows[0].name} ${lbRows[0].pts} คะแนน — เริ่มตอบเพื่อขึ้นกระดาน!` : '';
+    return;
+  }
+  el.textContent = '#' + info.rank;
+  document.getElementById('soloRankOf').textContent = `จาก ${info.total} คน${solo.room ? ' ในห้อง' : ''}`;
+  if (info.rank === 1) hint.textContent = info.total > 1 ? '👑 คุณอยู่อันดับ 1! รักษาตำแหน่งไว้ให้ได้' : '👑 คุณเป็นคนแรกบนกระดาน TOP!';
+  else if (info.next) {
+    const gap = info.next.pts - info.ref.pts;
+    hint.textContent = gap > 0
+      ? `🔥 อีก ${gap} คะแนน แซง ${info.next.name} ขึ้นอันดับ ${info.rank - 1}!`
+      : `🔥 คะแนนเท่า ${info.next.name} แล้ว — ตอบให้แม่นกว่าเพื่อแซงขึ้นอันดับ ${info.rank - 1}!`;
+  }
+}
+
+function renderLeaderboard() {
+  const all = lbWithMe();
+  const me = myEntry();
+  const rooms = [...new Set(all.map(r => (r.room || '').trim()).filter(Boolean))].sort();
+  if (lbFilter !== 'all' && !rooms.includes(lbFilter)) lbFilter = 'all';
+  const tabs = document.getElementById('lbTabs');
+  tabs.innerHTML = '';
+  const addTab = (val, label) => {
+    const b = document.createElement('button');
+    b.textContent = label; if (lbFilter === val) b.className = 'on';
+    b.onclick = () => { lbFilter = val; renderLeaderboard(); };
+    tabs.appendChild(b);
+  };
+  addTab('all', '🌏 ทุกห้อง');
+  rooms.forEach(r => addTab(r, '🏫 ' + r));
+  const rows = lbFilter === 'all' ? all : all.filter(r => (r.room || '').trim() === lbFilter);
+  const list = document.getElementById('lbList');
+  list.innerHTML = '';
+  if (!rows.length) {
+    list.innerHTML = '<div class="lb-empty">ยังไม่มีใครขึ้นกระดาน<br>เล่นแบบเดี่ยวแล้วกด 🏁 จบเกม เพื่อเป็นคนแรก!</div>';
+  }
+  const myKey = me ? lbKey(me) : '';
+  rows.slice(0, 10).forEach((r, i) => {
+    const d = document.createElement('div');
+    d.className = 'lb-row' + (i < 3 ? ' top' + (i + 1) : '') + (me && lbKey(r) === myKey ? ' me' : '');
+    const rank = document.createElement('div'); rank.className = 'lb-rank'; rank.textContent = ['🥇','🥈','🥉'][i] || (i + 1);
+    const nm = document.createElement('div'); nm.className = 'lb-name'; nm.textContent = r.name;
+    const sub = document.createElement('div'); sub.className = 'lb-sub';
+    sub.textContent = (r.room ? r.room + ' · ' : '') + `ถูก ${r.correct}/${r.answered} (${Math.round(lbAcc(r) * 100)}%)`;
+    nm.appendChild(sub);
+    const pt = document.createElement('div'); pt.className = 'lb-pts'; pt.innerHTML = `${r.pts}<small>คะแนน</small>`;
+    d.append(rank, nm, pt);
+    list.appendChild(d);
+  });
+  const my = document.getElementById('lbMyRank');
+  my.textContent = '';
+  if (me && me.answered > 0) {
+    const info = rankInfo(rows);
+    if (info) my.textContent = `📍 ${solo.name} อยู่อันดับที่ ${info.rank} จาก ${info.total} คน`;
+  }
+  document.getElementById('lbNote').textContent = lbSource === 'online'
+    ? '🌐 อันดับรวมจากทุกเครื่อง · นับคะแนนที่ดีที่สุดของแต่ละคน (คะแนนเท่ากัน ดู % ที่ตอบถูก)'
+    : '📱 อันดับเฉพาะที่เล่นในเครื่องนี้ · นับคะแนนที่ดีที่สุดของแต่ละคน';
+}
+
+function openLeaderboard() {
+  renderLeaderboard();
+  document.getElementById('lbOverlay').classList.remove('hidden');
+  loadLeaderboard();
+}
+function closeLeaderboard() { document.getElementById('lbOverlay').classList.add('hidden'); }
+
+function showResultRank() {
+  const el = document.getElementById('resultRank');
+  const info = rankInfo(lbWithMe());
+  el.innerHTML = '';
+  if (!info || !solo || solo.answered === 0) return;
+  el.textContent = info.rank <= 3 ? `${['🥇','🥈','🥉'][info.rank - 1]} ยอดเยี่ยม! คุณอยู่อันดับที่ ${info.rank} จาก ${info.total} คน`
+                                  : `🏆 คุณอยู่อันดับที่ ${info.rank} จาก ${info.total} คน`;
+  const b = document.createElement('button'); b.textContent = 'ดู TOP 10'; b.onclick = openLeaderboard;
+  el.appendChild(b);
+}
+
+// ---- send score (online if configured, always kept on this device) ----
+function pendingScores() { try { return JSON.parse(localStorage.getItem('sfq_pending') || '[]'); } catch (e) { return []; } }
+function setPending(a) { try { localStorage.setItem('sfq_pending', JSON.stringify(a)); } catch (e) {} }
+async function postScore(entry) {
+  await fetch(LEADERBOARD_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(entry) });
+}
+async function flushPendingScores() {
+  if (!LEADERBOARD_URL) return;
+  const a = pendingScores(); if (!a.length) return;
+  const left = [];
+  for (const e of a) { try { await postScore(e); } catch (err) { left.push(e); } }
+  setPending(left);
+}
+async function submitScore() {
+  const me = myEntry();
+  if (!me || me.answered === 0) return;
+  me.pts = Math.min(me.pts, MAX_POINTS);
+  me.comment = (document.getElementById('resultComment')?.value || '').trim();
+  try { me.code = (buildReport().match(/รหัสตรวจสอบ: (\S+)/) || [])[1] || ''; } catch (e) {}
+  saveLocalScore(me);
+  if (LEADERBOARD_URL) {
+    setPending(pendingScores().filter(x => x.sid !== me.sid).concat([me]));
+    await flushPendingScores();
+    setTimeout(() => loadLeaderboard(), 1500);
+  } else {
+    lbRows = lbBestPerPlayer(localScores());
+  }
+}
+
+// restore last player name/room
+(function () {
+  try {
+    const p = JSON.parse(localStorage.getItem('sfq_player') || 'null');
+    if (p) {
+      document.getElementById('soloNameInput').value = p.name || '';
+      document.getElementById('soloRoomInput').value = p.room || '';
+    }
+  } catch (e) {}
+  loadLeaderboard();
+  window.addEventListener('online', () => { flushPendingScores(); loadLeaderboard(); });
 })();
 </script>
 </body>
